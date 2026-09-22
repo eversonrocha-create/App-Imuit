@@ -9,7 +9,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-  <!-- html2pdf.js para geração de PDFs -->
+  <!-- html2pdf.js para PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <!-- Lucide Icons -->
@@ -24,7 +24,6 @@
       --accent-green: #238636;
       --accent-green-hover: #2ea043;
       --accent-red: #da3633;
-      --accent-yellow: #d29922;
       --text-main: #c9d1d9;
       --text-heading: #f0f6fc;
       --text-muted: #8b949e;
@@ -57,9 +56,21 @@
       gap: 12px;
     }
 
-    .logo-container img {
-      width: 42px;
-      height: 42px;
+    .logo-img-wrapper {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: rgba(88, 166, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-color);
+    }
+
+    .logo-img-wrapper img {
+      width: 100%;
+      height: 100%;
       object-fit: contain;
     }
 
@@ -79,7 +90,7 @@
     .status-online { color: #3fb950; border-color: rgba(63, 185, 80, 0.4); }
     .status-offline { color: #f85149; border-color: rgba(248, 81, 73, 0.4); }
 
-    /* NAVIGATION TABS */
+    /* TAB NAVEGAÇÃO */
     .tabs-nav {
       display: flex;
       gap: 8px;
@@ -114,7 +125,6 @@
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    /* CARDS & PANELS */
     .card {
       background: var(--card-bg);
       border: 1px solid var(--border-color);
@@ -131,13 +141,12 @@
       padding-bottom: 8px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: space-between;
     }
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     @media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
 
-    /* FORMS & INPUTS */
     .form-group {
       display: flex;
       flex-direction: column;
@@ -181,7 +190,6 @@
     button.btn-secondary { background: #21262d; color: var(--text-main); border: 1px solid var(--border-color); }
     button.btn-secondary:hover { background: #30363d; }
 
-    /* TABLES */
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--border-color); }
     th { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; }
@@ -196,48 +204,37 @@
     .tag-blue { background: rgba(88, 166, 255, 0.2); color: var(--accent-blue); }
     .tag-green { background: rgba(63, 185, 80, 0.2); color: #3fb950; }
 
-    /* CALENDAR STYLES */
-    .calendar-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 6px;
-      margin-top: 10px;
-    }
-
-    .calendar-day-head {
-      text-align: center;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      padding: 6px;
-    }
-
-    .calendar-day {
-      min-height: 80px;
+    .folder-box {
       background: var(--bg-dark);
       border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 6px;
-      font-size: 0.8rem;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 14px;
     }
 
-    .event-item {
-      background: rgba(88, 166, 255, 0.15);
-      color: var(--accent-blue);
-      padding: 2px 4px;
-      border-radius: 4px;
-      font-size: 0.7rem;
-      margin-top: 4px;
-      word-break: break-all;
+    .folder-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 10px;
     }
 
-    /* PDF EXPORT STYLES (Print Area) */
-    .pdf-template {
-      background: #ffffff;
-      color: #000000;
-      padding: 30px;
+    .member-item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border-color);
       border-radius: 4px;
-      font-family: Arial, sans-serif;
+      margin-bottom: 4px;
     }
+    .member-item-row.pendente { background: rgba(210, 153, 34, 0.1); border-left: 3px solid #d29922; }
+    .member-item-row.concluido { background: rgba(63, 185, 80, 0.05); }
+
+    /* PDF EXPORT TEMPLATE */
+    .pdf-template { background: #fff; color: #000; padding: 30px; font-family: Arial, sans-serif; }
     .pdf-header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
     .pdf-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
     .pdf-table th, .pdf-table td { border: 1px solid #ddd; padding: 8px; text-align: left; color: #000; }
@@ -249,220 +246,145 @@
   <div class="container">
     <header>
       <div class="logo-container">
-        <img src="logo.png" alt="Logo" onerror="this.onerror=null; this.remove(); document.getElementById('altIcon').style.display='block';">
-        <i id="altIcon" data-lucide="church" style="width: 32px; height: 32px; color: var(--accent-blue); display: none;"></i>
+        <div class="logo-img-wrapper">
+          <img id="appLogoImg" src="logo.png" alt="Logo" onerror="this.onerror=null; this.style.display='none'; document.getElementById('altChurchIcon').style.display='block';">
+          <i id="altChurchIcon" data-lucide="church" style="width:28px; color:var(--accent-blue); display:none;"></i>
+        </div>
         <div>
           <h1>App Imuit - Gestão de Igreja</h1>
           <p style="font-size: 0.8rem; color: var(--text-muted);">Sincronização em Tempo Real</p>
         </div>
       </div>
       <div id="status" class="status-badge status-offline">
-        <i data-lucide="wifi-off" style="width: 14px;"></i> Conectando ao Firebase...
+        <i data-lucide="wifi-off" style="width: 14px;"></i> Conectando...
       </div>
     </header>
 
-    <!-- ABA NAVEGAÇÃO -->
+    <!-- ABAS -->
     <div class="tabs-nav">
-      <button class="tab-btn active" onclick="switchTab('tabChamada', this)"><i data-lucide="clipboard-check"></i> 1. Lista de Presença</button>
-      <button class="tab-btn" onclick="switchTab('tabCalendario', this)"><i data-lucide="calendar"></i> 2. Calendário de Eventos</button>
-      <button class="tab-btn" onclick="switchTab('tabMembros', this)"><i data-lucide="users"></i> 3. Membros e Ministérios</button>
-      <button class="tab-btn" onclick="switchTab('tabTutorial', this)"><i data-lucide="help-circle"></i> 4. Tutorial de Uso</button>
+      <button class="tab-btn active" onclick="switchTab('tabChamada', this)"><i data-lucide="clipboard-check"></i> 1. Chamada e Pastas</button>
+      <button class="tab-btn" onclick="switchTab('tabMembros', this)"><i data-lucide="users"></i> 2. Membros e Ministérios</button>
+      <button class="tab-btn" onclick="switchTab('tabConfig', this)"><i data-lucide="settings"></i> 3. Configuração do Logo</button>
     </div>
 
-    <!-- ==================== ABA 1: PRESENÇA & PASTAS ==================== -->
+    <!-- ==================== ABA 1: PASTAS E LISTAS DE PRESENÇA ==================== -->
     <div id="tabChamada" class="tab-content active">
       <div class="grid-2">
+        
+        <!-- CRIAR / GERENCIAR PASTAS -->
         <div class="card">
-          <h2 class="card-title"><i data-lucide="file-text"></i> Nova Lista de Chamada</h2>
-          <div class="form-group">
-            <label>Nome da Pasta / Culto / Evento:</label>
-            <input type="text" id="chamadaTitulo" placeholder="Ex: Culto de Domingo - 19h">
+          <div class="card-title">
+            <span><i data-lucide="folder-plus"></i> Gerenciador de Pastas</span>
           </div>
           <div class="form-row">
+            <input type="text" id="novoNomePastaCat" placeholder="Nome da Pasta (ex: Cultos de Domingo)">
+            <button onclick="criarNovaPasta()"><i data-lucide="plus"></i> Criar Pasta</button>
+          </div>
+
+          <h3 style="font-size:0.9rem; color:var(--text-muted); margin:15px 0 10px 0;">Pastas Existentes:</h3>
+          <div id="listaCategoriasPastas">
+            <p style="color:var(--text-muted);">Nenhuma pasta criada.</p>
+          </div>
+        </div>
+
+        <!-- REALIZAR CHAMADA DA LISTA -->
+        <div class="card">
+          <div class="card-title">
+            <span><i data-lucide="file-check"></i> Realizar Chamada</span>
+          </div>
+          <div class="form-group">
+            <label>Selecione a Pasta de Destino:</label>
+            <select id="selPastaDestino"></select>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+              <label>Nome do Evento / Lista:</label>
+              <input type="text" id="listaTitulo" placeholder="Ex: Culto 20/09/2026">
+            </div>
             <div class="form-group" style="flex: 1;">
               <label>Data:</label>
-              <input type="date" id="chamadaData">
-            </div>
-            <div class="form-group" style="flex: 1;">
-              <label>Importar Por Ministério:</label>
-              <select id="filtroMinChamada" onchange="carregarMembrosNaChamada()">
-                <option value="TODOS">Todos os Membros</option>
-              </select>
+              <input type="date" id="listaData">
             </div>
           </div>
 
-          <h3 style="font-size: 0.9rem; margin: 15px 0 10px 0; color: var(--text-muted);">Marcar Presença:</h3>
-          <div id="listaPresencaInput">
-            <p style="color: var(--text-muted);">Cadastre membros para realizar a chamada.</p>
-          </div>
-
-          <button onclick="salvarPastaChamada()" style="width: 100%; margin-top: 15px;"><i data-lucide="save"></i> Salvar e Guardar na Pasta</button>
-        </div>
-
-        <div class="card">
-          <h2 class="card-title"><i data-lucide="folder"></i> Pastas Salvas e Exportação PDF</h2>
-          <div id="listaPastasSalvas">
-            <p style="color: var(--text-muted);">Nenhuma chamada salva nas pastas.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== ABA 2: CALENDÁRIO ==================== -->
-    <div id="tabCalendario" class="tab-content">
-      <div class="grid-2">
-        <div class="card">
-          <h2 class="card-title"><i data-lucide="calendar-plus"></i> Agendar Evento no Calendário</h2>
-          <div class="form-group">
-            <label>Título do Evento:</label>
-            <input type="text" id="evtTitulo" placeholder="Ex: Culto de Celebração">
-          </div>
-          <div class="form-row">
-            <div class="form-group" style="flex: 1;">
-              <label>Data Inicial:</label>
-              <input type="date" id="evtData">
-            </div>
-            <div class="form-group" style="flex: 1;">
-              <label>Horário:</label>
-              <input type="time" id="evtHora" value="19:00">
+          <!-- CONTROLES DE ORDENAÇÃO -->
+          <div style="background:var(--bg-dark); padding:10px; border-radius:6px; margin:10px 0; border:1px solid var(--border-color);">
+            <label style="display:block; margin-bottom:6px; font-weight:bold;">Ordenar Lista por:</label>
+            <div class="form-row">
+              <button class="btn-secondary" style="font-size:0.75rem; padding:4px 8px;" onclick="ordenarChamada('PENDENTES')">⚡ Pendentes Primeiro</button>
+              <button class="btn-secondary" style="font-size:0.75rem; padding:4px 8px;" onclick="ordenarChamada('NOME')">🔤 Ordem A-Z</button>
+              <button class="btn-secondary" style="font-size:0.75rem; padding:4px 8px;" onclick="ordenarChamada('STATUS')">📊 Por Status</button>
             </div>
           </div>
-          <div class="form-group">
-            <label>Recorrência (Repetição):</label>
-            <select id="evtRecorrencia">
-              <option value="UNICO">Evento Único (Sem repetição)</option>
-              <option value="SEMANAL">Repetir Toda Semana (Ex: Todo Domingo)</option>
-              <option value="MENSAL">Repetir Todo Mês</option>
-            </select>
-          </div>
-          <div class="form-group" id="boxQtdRecorrencia">
-            <label>Quantidade de Semanas/Meses a criar:</label>
-            <input type="number" id="evtQtd" value="4" min="1" max="52">
-          </div>
-          <button onclick="salvarEvento()"><i data-lucide="calendar-check"></i> Agendar Evento(s)</button>
+
+          <div id="boxMembrosChamada" style="max-height: 400px; overflow-y: auto; padding-right: 5px;"></div>
+
+          <button onclick="salvarListaNaPasta()" style="width:100%; margin-top:15px;"><i data-lucide="save"></i> Salvar Lista na Pasta</button>
         </div>
 
-        <div class="card">
-          <h2 class="card-title"><i data-lucide="list"></i> Próximos Eventos & Aniversários</h2>
-          <div id="listaEventosProximos">
-            <p style="color: var(--text-muted);">Nenhum evento futuro agendado.</p>
-          </div>
-        </div>
       </div>
 
+      <!-- VISUALIZAÇÃO HIERÁRQUICA DE PASTAS E SUAS LISTAS -->
       <div class="card">
-        <h2 class="card-title"><i data-lucide="calendar"></i> Visualização Mensal</h2>
-        <div class="calendar-grid">
-          <div class="calendar-day-head">Dom</div>
-          <div class="calendar-day-head">Seg</div>
-          <div class="calendar-day-head">Ter</div>
-          <div class="calendar-day-head">Qua</div>
-          <div class="calendar-day-head">Qui</div>
-          <div class="calendar-day-head">Sex</div>
-          <div class="calendar-day-head">Sáb</div>
+        <div class="card-title">
+          <span><i data-lucide="folder-tree"></i> Pastas e Listas Salvas (Cultos e Eventos)</span>
         </div>
-        <div class="calendar-grid" id="gridCalendarioDias"></div>
+        <div id="arvorePastasEListas"></div>
       </div>
     </div>
 
-    <!-- ==================== ABA 3: MEMBROS & MINISTÉRIOS ==================== -->
+    <!-- ==================== ABA 2: MEMBROS E MINISTÉRIOS ==================== -->
     <div id="tabMembros" class="tab-content">
       <div class="grid-2">
         <div class="card">
-          <h2 class="card-title"><i data-lucide="user-plus"></i> Cadastrar Membro / Visitante</h2>
+          <div class="card-title"><span><i data-lucide="user-plus"></i> Cadastrar Membro</span></div>
           <div class="form-group">
             <label>Nome Completo:</label>
             <input type="text" id="memNome" placeholder="Ex: João da Silva">
           </div>
           <div class="form-row">
             <div class="form-group" style="flex: 1;">
-              <label>Apelido (se houver):</label>
+              <label>Apelido:</label>
               <input type="text" id="memApelido" placeholder="Ex: Joãozinho">
             </div>
             <div class="form-group" style="flex: 1;">
-              <label>Data de Nascimento:</label>
-              <input type="date" id="memNascimento">
+              <label>Telefone:</label>
+              <input type="text" id="memFone" placeholder="(00) 00000-0000" oninput="mascaraTelefone(this)">
             </div>
           </div>
-          <div class="form-group">
-            <label>Número de Contato (Com DDD):</label>
-            <input type="text" id="memFone" placeholder="(00) 00000-0000" oninput="mascaraTelefone(this)">
-          </div>
-          <div class="form-group">
-            <label>Ministérios (Selecione 1 ou mais, ou deixe em branco para Visitante):</label>
-            <div id="boxMinisteriosCheck">
-              <!-- Renderizado Dinamicamente -->
-            </div>
-          </div>
-          <button onclick="salvarMembro()"><i data-lucide="check-circle"></i> Cadastrar Membro</button>
+          <button onclick="salvarMembro()"><i data-lucide="check"></i> Cadastrar</button>
         </div>
 
         <div class="card">
-          <h2 class="card-title"><i data-lucide="briefcase"></i> Gerenciar Ministérios</h2>
-          <div class="form-row">
-            <input type="text" id="nomeMin" placeholder="Nome do Ministério (ex: Louvor)">
-            <button onclick="adicionarMinisterio()"><i data-lucide="plus"></i> Criar</button>
-          </div>
-          <h3 style="font-size: 0.9rem; margin: 15px 0 10px 0; color: var(--text-muted);">Ministérios Criados:</h3>
-          <div id="listaMinisterios"></div>
+          <div class="card-title"><span><i data-lucide="users"></i> Membros Cadastrados</span></div>
+          <table style="width:100%;">
+            <thead><tr><th>Nome</th><th>Contato</th><th>Ações</th></tr></thead>
+            <tbody id="tbMembrosCorpo"></tbody>
+          </table>
         </div>
-      </div>
-
-      <div class="card">
-        <h2 class="card-title"><i data-lucide="users"></i> Lista Geral de Membros e Ficha Individual</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Nome / Apelido</th>
-              <th>Contato</th>
-              <th>Aniversário</th>
-              <th>Ministérios</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="tabelaGeralMembros"></tbody>
-        </table>
       </div>
     </div>
 
-    <!-- ==================== ABA 4: TUTORIAL ==================== -->
-    <div id="tabTutorial" class="tab-content">
+    <!-- ==================== ABA 3: CONFIGURAÇÃO DO LOGO ==================== -->
+    <div id="tabConfig" class="tab-content">
       <div class="card">
-        <h2 class="card-title"><i data-lucide="help-circle"></i> Guia Rápido de Uso do Aplicativo</h2>
-        <div style="line-height: 1.6; color: var(--text-main);">
-          <p><strong>1. Lista de Presença:</strong></p>
-          <ul style="margin-left: 20px; margin-bottom: 15px;">
-            <li>Digite o nome do evento/culto e escolha a data.</li>
-            <li>Você pode filtrar a lista por um Ministério específico (ex: marcar presença apenas do grupo de Louvor).</li>
-            <li>Marque cada membro como Presente, Ausente ou Justificado e clique em <b>Salvar</b>.</li>
-            <li>As chamadas salvas ficam guardadas nas <b>Pastas Salvas</b>. Clique em <b>Gerar PDF</b> para gerar o relatório impresso com gráfico e status!</li>
-          </ul>
-
-          <p><strong>2. Calendário e Agendamentos Recorrentes:</strong></p>
-          <ul style="margin-left: 20px; margin-bottom: 15px;">
-            <li>Para agendar eventos repetidos (ex: todos os cultos de domingo às 19h), selecione a opção <b>Repetir Toda Semana</b>, informe a quantidade de semanas e clique em agendar!</li>
-            <li>Os aniversários cadastrados na aba de membros aparecem automaticamente no calendário.</li>
-            <li>Você pode cancelar um evento único ou apagar toda a série de eventos futuros se necessário.</li>
-          </ul>
-
-          <p><strong>3. Membros e Ministérios:</strong></p>
-          <ul style="margin-left: 20px; margin-bottom: 15px;">
-            <li>Cadastre os membros com Nome, Apelido, Nascimento e Telefone.</li>
-            <li>Ao digitar o telefone, o sistema formata o DDD e hífen automaticamente `(XX) XXXXX-XXXX`.</li>
-            <li>Para os visitantes, basta não selecionar nenhum ministério.</li>
-            <li>Na tabela de membros, você pode clicar em <b>Imprimir Ficha PDF</b> para gerar uma ficha formal do membro.</li>
-          </ul>
+        <div class="card-title"><span><i data-lucide="image"></i> Configurar Logo do Aplicativo</span></div>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">
+          Você pode colar o link direto de uma imagem de logo hospedada na internet para atualizar em todos os dispositivos instantaneamente.
+        </p>
+        <div class="form-group">
+          <label>URL / Link da Imagem do Logo:</label>
+          <input type="text" id="inputUrlLogo" placeholder="https://exemplo.com/sua-logo.png">
         </div>
+        <button onclick="salvarUrlLogo()"><i data-lucide="save"></i> Salvar Logo na Nuvem</button>
       </div>
     </div>
 
   </div>
 
-  <!-- CONTAINER OCULTO PARA IMPRESSÃO DE PDF -->
   <div id="pdfPrintArea" style="display: none;"></div>
 
   <script>
-    // CONFIGURAÇÃO DO FIREBASE (Projeto App Imuit)
     const firebaseConfig = {
       apiKey: "AIzaSyCIeKq6dh_MRX7Fju1E9apbfroKDs8KfXk",
       authDomain: "app-imuit-fabf6.firebaseapp.com",
@@ -478,30 +400,38 @@
 
     // ESTADO DA APLICAÇÃO
     let membros = [];
-    let ministerios = ["Louvor", "Infantil", "Jovens", "Mídia"];
-    let eventos = [];
-    let pastasChamada = [];
+    let categoriasPastas = []; // [{ id, nome, listas: [{ id, titulo, data, registros: [{membroId, nome, status}] }] }]
+    let logoUrl = "logo.png";
+    let chamadasEstadoLocal = {}; // { membroId: "PENDENTE" | "PRESENTE" | "VISITANTE" | "JUSTIFICADO" | "FALTA" }
+    let modoOrdenacaoChamada = "PENDENTES";
 
-    // ESCUTA EM TEMPO REAL NO FIREBASE
-    db.ref('app_imuit_data').on('value', (snapshot) => {
+    // CARREGAR DADOS EM TEMPO REAL
+    db.ref('app_imuit_v2').on('value', (snapshot) => {
       const data = snapshot.val();
       if (data) {
         membros = data.membros || [];
-        ministerios = data.ministerios || ["Louvor", "Infantil", "Jovens", "Mídia"];
-        eventos = data.eventos || [];
-        pastasChamada = data.pastasChamada || [];
+        categoriasPastas = data.categoriasPastas || [];
+        logoUrl = data.logoUrl || "logo.png";
       }
 
       document.getElementById('status').className = "status-badge status-online";
-      document.getElementById('status').innerHTML = `<i data-lucide="wifi" style="width:14px;"></i> Nuvem Sincronizada`;
-      lucide.createIcons();
+      document.getElementById('status').innerHTML = `<i data-lucide="wifi" style="width:14px;"></i> Sincronizado`;
+      
+      // Atualizar imagem do logo se houver URL customizada
+      if (logoUrl && logoUrl !== "logo.png") {
+        const logoImg = document.getElementById('appLogoImg');
+        logoImg.src = logoUrl;
+        logoImg.style.display = 'block';
+        document.getElementById('altChurchIcon').style.display = 'none';
+      }
 
+      lucide.createIcons();
       renderTudo();
     });
 
     function salvarDados() {
-      db.ref('app_imuit_data').set({
-        membros, ministerios, eventos, pastasChamada,
+      db.ref('app_imuit_v2').set({
+        membros, categoriasPastas, logoUrl,
         ultimaAtualizacao: new Date().toISOString()
       });
     }
@@ -513,302 +443,243 @@
       btn.classList.add('active');
     }
 
-    // ==================== MÁSCARA AUTOMÁTICA DE TELEFONE ====================
     function mascaraTelefone(input) {
       let v = input.value.replace(/\D/g, "");
       if (v.length > 11) v = v.substring(0, 11);
       if (v.length > 10) {
         v = v.replace(/^(\d\d)(\d\d\d\d\d)(\d\d\d\d)/, "($1) $2-$3");
-      } else if (v.length > 6) {
-        v = v.replace(/^(\d\d)(\d\d\d\d)(\d\d\d\d)/, "($1) $2-$3");
       } else if (v.length > 2) {
         v = v.replace(/^(\d\d)/, "($1) ");
       }
       input.value = v;
     }
 
-    // ==================== MEMBROS & MINISTÉRIOS ====================
-    function salvarMembro() {
-      const nome = document.getElementById('memNome').value.trim();
-      const apelido = document.getElementById('memApelido').value.trim();
-      const nascimento = document.getElementById('memNascimento').value;
-      const fone = document.getElementById('memFone').value.trim();
-
-      if (!nome) return alert("Informe o nome do membro!");
-
-      // Coleta ministérios marcados
-      const minSel = [];
-      document.querySelectorAll('.min-check:checked').forEach(c => minSel.push(c.value));
-
-      membros.push({ id: Date.now(), nome, apelido, nascimento, fone, ministerios: minSel });
-
-      // Se tem data de nascimento, agenda o aniversário no calendário
-      if (nascimento) {
-        const diaMes = nascimento.substring(5);
-        const anoAtual = new Date().getFullYear();
-        eventos.push({
-          id: Date.now() + 1,
-          titulo: `🎂 Aniversário: ${nome}`,
-          data: `${anoAtual}-${diaMes}`,
-          hora: "00:00",
-          tipo: "ANIVERSARIO"
-        });
-      }
-
-      document.getElementById('memNome').value = '';
-      document.getElementById('memApelido').value = '';
-      document.getElementById('memNascimento').value = '';
-      document.getElementById('memFone').value = '';
-
-      salvarDados();
-      alert("Membro cadastrado com sucesso!");
-    }
-
-    function adicionarMinisterio() {
-      const nome = document.getElementById('nomeMin').value.trim();
-      if (!nome) return alert("Informe o nome do ministério!");
-      if (!ministerios.includes(nome)) ministerios.push(nome);
-      document.getElementById('nomeMin').value = '';
+    // ==================== GERENCIAMENTO DE PASTAS & LISTAS ====================
+    function criarNovaPasta() {
+      const nome = document.getElementById('novoNomePastaCat').value.trim();
+      if (!nome) return alert("Informe o nome da pasta!");
+      categoriasPastas.push({ id: Date.now(), nome, listas: [] });
+      document.getElementById('novoNomePastaCat').value = '';
       salvarDados();
     }
 
-    function removerMinisterio(nome) {
-      if (confirm(`Excluir o ministério "${nome}"?`)) {
-        ministerios = ministerios.filter(m => m !== nome);
+    function editarPasta(pastaId) {
+      const pasta = categoriasPastas.find(p => p.id === pastaId);
+      if (!pasta) return;
+      const novoNome = prompt("Editar nome da pasta:", pasta.nome);
+      if (novoNome && novoNome.trim()) {
+        pasta.nome = novoNome.trim();
         salvarDados();
       }
     }
 
+    function excluirPasta(pastaId) {
+      if (confirm("Deseja excluir esta pasta e todas as listas dentro dela?")) {
+        categoriasPastas = categoriasPastas.filter(p => p.id !== pastaId);
+        salvarDados();
+      }
+    }
+
+    function excluirLista(pastaId, listaId) {
+      if (confirm("Apagar esta lista de chamada?")) {
+        const pasta = categoriasPastas.find(p => p.id === pastaId);
+        if (pasta) {
+          pasta.listas = pasta.listas.filter(l => l.id !== listaId);
+          salvarDados();
+        }
+      }
+    }
+
+    // ==================== LÓGICA DA CHAMADA ====================
+    function setStatusMembro(membroId, status) {
+      chamadasEstadoLocal[membroId] = status;
+      renderBoxChamada();
+    }
+
+    function ordenarChamada(modo) {
+      modoOrdenacaoChamada = modo;
+      renderBoxChamada();
+    }
+
+    function renderBoxChamada() {
+      const container = document.getElementById('boxMembrosChamada');
+      if (membros.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-muted); padding:10px;">Cadastre membros primeiro.</p>';
+        return;
+      }
+
+      // Preenche padronizado como PENDENTE quem não foi marcado
+      membros.forEach(m => {
+        if (!chamadasEstadoLocal[m.id]) chamadasEstadoLocal[m.id] = "PENDENTE";
+      });
+
+      let listaOrdenada = [...membros];
+
+      if (modoOrdenacaoChamada === 'PENDENTES') {
+        listaOrdenada.sort((a, b) => {
+          const stA = chamadasEstadoLocal[a.id] === 'PENDENTE' ? 0 : 1;
+          const stB = chamadasEstadoLocal[b.id] === 'PENDENTE' ? 0 : 1;
+          return stA - stB;
+        });
+      } else if (modoOrdenacaoChamada === 'NOME') {
+        listaOrdenada.sort((a, b) => a.nome.localeCompare(b.nome));
+      } else if (modoOrdenacaoChamada === 'STATUS') {
+        const peso = { "PRESENTE": 1, "VISITANTE": 2, "JUSTIFICADO": 3, "FALTA": 4, "PENDENTE": 5 };
+        listaOrdenada.sort((a, b) => peso[chamadasEstadoLocal[a.id]] - peso[chamadasEstadoLocal[b.id]]);
+      }
+
+      container.innerHTML = listaOrdenada.map(m => {
+        const st = chamadasEstadoLocal[m.id];
+        const ehPendente = st === "PENDENTE";
+
+        return `
+          <div class="member-item-row ${ehPendente ? 'pendente' : 'concluido'}">
+            <div>
+              <strong>${m.nome}</strong> ${m.apelido ? `<small style="color:var(--text-muted)">(${m.apelido})</small>` : ''}
+            </div>
+            <select style="font-size:0.8rem; padding:4px;" onchange="setStatusMembro(${m.id}, this.value)">
+              <option value="PENDENTE" ${st === 'PENDENTE' ? 'selected' : ''}>⏳ Pendente</option>
+              <option value="PRESENTE" ${st === 'PRESENTE' ? 'selected' : ''}>✓ Presente</option>
+              <option value="VISITANTE" ${st === 'VISITANTE' ? 'selected' : ''}>👤 Visitante</option>
+              <option value="JUSTIFICADO" ${st === 'JUSTIFICADO' ? 'selected' : ''}>🟡 Justificado</option>
+              <option value="FALTA" ${st === 'FALTA' ? 'selected' : ''}>✗ Falta</option>
+            </select>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function salvarListaNaPasta() {
+      const pastaId = parseInt(document.getElementById('selPastaDestino').value);
+      const titulo = document.getElementById('listaTitulo').value.trim();
+      const data = document.getElementById('listaData').value;
+
+      if (!pastaId) return alert("Crie e selecione uma pasta de destino!");
+      if (!titulo || !data) return alert("Informe título e data!");
+
+      const pasta = categoriasPastas.find(p => p.id === pastaId);
+      if (!pasta) return;
+
+      const registros = membros.map(m => ({
+        membroId: m.id,
+        nome: m.nome,
+        status: chamadasEstadoLocal[m.id] || "PENDENTE"
+      }));
+
+      pasta.listas.push({ id: Date.now(), titulo, data, registros });
+      chamadasEstadoLocal = {};
+      document.getElementById('listaTitulo').value = '';
+      salvarDados();
+      alert("Lista salva com sucesso na pasta!");
+    }
+
+    // ==================== OUTRAS FUNÇÕES ====================
+    function salvarMembro() {
+      const nome = document.getElementById('memNome').value.trim();
+      const apelido = document.getElementById('memApelido').value.trim();
+      const fone = document.getElementById('memFone').value.trim();
+
+      if (!nome) return alert("Informe o nome!");
+      membros.push({ id: Date.now(), nome, apelido, fone });
+      
+      document.getElementById('memNome').value = '';
+      document.getElementById('memApelido').value = '';
+      document.getElementById('memFone').value = '';
+      salvarDados();
+    }
+
     function removerMembro(id) {
-      if (confirm("Deseja apagar este membro?")) {
+      if (confirm("Remover membro?")) {
         membros = membros.filter(m => m.id !== id);
         salvarDados();
       }
     }
 
-    // ==================== CALENDÁRIO & EVENTOS RECORRENTES ====================
-    function salvarEvento() {
-      const titulo = document.getElementById('evtTitulo').value.trim();
-      const dataStr = document.getElementById('evtData').value;
-      const hora = document.getElementById('evtHora').value;
-      const recorrencia = document.getElementById('evtRecorrencia').value;
-      const qtd = parseInt(document.getElementById('evtQtd').value) || 1;
-
-      if (!titulo || !dataStr) return alert("Informe título e data!");
-
-      const grupoRecorrenciaId = recorrencia !== 'UNICO' ? Date.now() : null;
-
-      let dataBase = new Date(dataStr + 'T12:00:00');
-
-      for (let i = 0; i < (recorrencia === 'UNICO' ? 1 : qtd); i++) {
-        let d = new Date(dataBase);
-        if (recorrencia === 'SEMANAL') d.setDate(d.getDate() + (i * 7));
-        if (recorrencia === 'MENSAL') d.setMonth(d.getMonth() + i);
-
-        eventos.push({
-          id: Date.now() + i,
-          grupoId: grupoRecorrenciaId,
-          titulo,
-          data: d.toISOString().split('T')[0],
-          hora,
-          tipo: "EVENTO"
-        });
-      }
-
-      document.getElementById('evtTitulo').value = '';
+    function salvarUrlLogo() {
+      const url = document.getElementById('inputUrlLogo').value.trim();
+      if (!url) return alert("Informe a URL!");
+      logoUrl = url;
       salvarDados();
-      alert("Evento(s) agendado(s)!");
+      alert("Logo salva na nuvem!");
     }
 
-    function cancelarEvento(id, cancelarFuturos = false) {
-      const evt = eventos.find(e => e.id === id);
-      if (!evt) return;
-
-      if (cancelarFuturos && evt.grupoId) {
-        if (confirm("Cancelar este e todos os eventos futuros desta série?")) {
-          eventos = eventos.filter(e => !(e.grupoId === evt.grupoId && e.data >= evt.data));
-          salvarDados();
-        }
-      } else {
-        if (confirm("Cancelar apenas este evento?")) {
-          eventos = eventos.filter(e => e.id !== id);
-          salvarDados();
-        }
-      }
-    }
-
-    // ==================== LISTA DE PRESENÇA & PASTAS ====================
-    function carregarMembrosNaChamada() {
-      const box = document.getElementById('listaPresencaInput');
-      const minFiltro = document.getElementById('filtroMinChamada').value;
-
-      let memFiltrados = membros;
-      if (minFiltro !== 'TODOS') {
-        memFiltrados = membros.filter(m => m.ministerios && m.ministerios.includes(minFiltro));
-      }
-
-      if (memFiltrados.length === 0) {
-        box.innerHTML = '<p style="color: var(--text-muted);">Nenhum membro encontrado para este filtro.</p>';
-        return;
-      }
-
-      box.innerHTML = memFiltrados.map(m => `
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
-          <span><strong>${m.nome}</strong> ${m.apelido ? `(${m.apelido})` : ''}</span>
-          <select id="status_${m.id}">
-            <option value="PRESENTE">✓ Presente</option>
-            <option value="AUSENTE">✗ Ausente</option>
-            <option value="JUSTIFICADO">🟡 Justificado</option>
-          </select>
-        </div>
-      `).join('');
-    }
-
-    function salvarPastaChamada() {
-      const titulo = document.getElementById('chamadaTitulo').value.trim();
-      const data = document.getElementById('chamadaData').value;
-
-      if (!titulo || !data) return alert("Informe título e data para a chamada!");
-
-      const registros = [];
-      membros.forEach(m => {
-        const el = document.getElementById(`status_${m.id}`);
-        if (el) {
-          registros.push({ membroId: m.id, nome: m.nome, status: el.value });
-        }
-      });
-
-      pastasChamada.push({ id: Date.now(), titulo, data, registros });
-      salvarDados();
-      alert("Lista de presença salva com sucesso na pasta!");
-    }
-
-    // ==================== GERAÇÃO DE PDFS ====================
-    function gerarPDFPasta(pastaId) {
-      const pasta = pastasChamada.find(p => p.id === pastaId);
+    function gerarPDFLista(pastaId, listaId) {
+      const pasta = categoriasPastas.find(p => p.id === pastaId);
       if (!pasta) return;
-
-      const presentes = pasta.registros.filter(r => r.status === 'PRESENTE').length;
-      const ausentes = pasta.registros.filter(r => r.status === 'AUSENTE').length;
-      const justificados = pasta.registros.filter(r => r.status === 'JUSTIFICADO').length;
-      const total = pasta.registros.length;
-      const pct = total > 0 ? Math.round((presentes / total) * 100) : 0;
+      const lista = pasta.listas.find(l => l.id === listaId);
+      if (!lista) return;
 
       const area = document.getElementById('pdfPrintArea');
       area.innerHTML = `
         <div class="pdf-template">
           <div class="pdf-header">
-            <h2>RELATÓRIO DE PRESENÇA - APP IMUIT</h2>
-            <h3>${pasta.titulo} - Data: ${pasta.data}</h3>
+            <h2>IMUIT - RELATÓRIO DE PRESENÇA</h2>
+            <h3>Pasta: ${pasta.nome} | Lista: ${lista.titulo} (${lista.data})</h3>
           </div>
-          <p><strong>Total de Registrados:</strong> ${total} | <strong>Presentes:</strong> ${presentes} (${pct}%) | <strong>Ausentes:</strong> ${ausentes} | <strong>Justificados:</strong> ${justificados}</p>
-          
           <table class="pdf-table">
-            <thead>
-              <tr>
-                <th>Nome do Membro</th>
-                <th>Status</th>
-              </tr>
-            </thead>
+            <thead><tr><th>Membro</th><th>Status</th></tr></thead>
             <tbody>
-              ${pasta.registros.map(r => `
-                <tr>
-                  <td>${r.nome}</td>
-                  <td><strong>${r.status}</strong></td>
-                </tr>
-              `).join('')}
+              ${lista.registros.map(r => `<tr><td>${r.nome}</td><td><strong>${r.status}</strong></td></tr>`).join('')}
             </tbody>
           </table>
         </div>
       `;
-
-      html2pdf().from(area).save(`Chamada_${pasta.titulo.replace(/\s+/g, '_')}.pdf`);
+      html2pdf().from(area).save(`${pasta.nome}_${lista.titulo}.pdf`);
     }
 
-    function gerarPDFFichaMembro(membroId) {
-      const m = membros.find(x => x.id === membroId);
-      if (!m) return;
-
-      const area = document.getElementById('pdfPrintArea');
-      area.innerHTML = `
-        <div class="pdf-template">
-          <div class="pdf-header">
-            <h2>FICHA DE CADASTRO DO MEMBRO</h2>
-            <h3>${m.nome}</h3>
-          </div>
-          <p><strong>Apelido:</strong> ${m.apelido || 'Nenhum'}</p>
-          <p><strong>Data de Nascimento:</strong> ${m.nascimento || 'Não informada'}</p>
-          <p><strong>Telefone / Contato:</strong> ${m.fone || 'Não informado'}</p>
-          <p><strong>Ministérios:</strong> ${m.ministerios && m.ministerios.length > 0 ? m.ministerios.join(', ') : 'Visitante / Sem Ministério'}</p>
-        </div>
-      `;
-
-      html2pdf().from(area).save(`Ficha_${m.nome.replace(/\s+/g, '_')}.pdf`);
-    }
-
-    // ==================== RENDERIZADORES DA INTERFACE ====================
+    // ==================== RENDERIZAR TUDO ====================
     function renderTudo() {
-      // 1. Select de Filtro de Ministérios na Chamada
-      const selMin = document.getElementById('filtroMinChamada');
-      selMin.innerHTML = '<option value="TODOS">Todos os Membros</option>' + ministerios.map(m => `<option value="${m}">${m}</option>`).join('');
+      // 1. Renderizar Pastas Existentes
+      const boxPastas = document.getElementById('listaCategoriasPastas');
+      boxPastas.innerHTML = categoriasPastas.length === 0 ? '<p style="color:var(--text-muted);">Nenhuma pasta.</p>' :
+        categoriasPastas.map(p => `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border-color);">
+            <span>📁 <strong>${p.nome}</strong> (${p.listas ? p.listas.length : 0} listas)</span>
+            <div>
+              <button class="btn-secondary" style="padding:2px 6px; font-size:0.75rem;" onclick="editarPasta(${p.id})">Editar</button>
+              <button class="btn-danger" style="padding:2px 6px; font-size:0.75rem;" onclick="excluirPasta(${p.id})">Excluir</button>
+            </div>
+          </div>
+        `).join('');
 
-      // 2. Checkbox de Ministérios no Cadastro de Membros
-      const boxMin = document.getElementById('boxMinisteriosCheck');
-      boxMin.innerHTML = ministerios.map(m => `
-        <label style="display:inline-flex; align-items:center; gap:4px; margin-right:12px;">
-          <input type="checkbox" class="min-check" value="${m}"> ${m}
-        </label>
-      `).join('');
+      // 2. Select de Destino da Chamada
+      const selDestino = document.getElementById('selPastaDestino');
+      selDestino.innerHTML = categoriasPastas.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
 
-      // 3. Tabela Geral de Membros
-      const tbMembros = document.getElementById('tabelaGeralMembros');
-      tbMembros.innerHTML = membros.map(m => `
+      // 3. Renderizar Árvore de Pastas > Listas
+      const boxArvore = document.getElementById('arvorePastasEListas');
+      boxArvore.innerHTML = categoriasPastas.length === 0 ? '<p style="color:var(--text-muted);">Nenhuma pasta ou lista criada.</p>' :
+        categoriasPastas.map(p => `
+          <div class="folder-box">
+            <div class="folder-header">
+              <strong>📁 ${p.nome}</strong>
+            </div>
+            ${p.listas && p.listas.length > 0 ? p.listas.map(l => `
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px dashed var(--border-color);">
+                <span>📄 <strong>${l.titulo}</strong> <small style="color:var(--text-muted)">(${l.data})</small></span>
+                <div>
+                  <button class="btn-secondary" style="padding:2px 6px; font-size:0.75rem;" onclick="gerarPDFLista(${p.id},${l.id})">PDF</button>
+                  <button class="btn-danger" style="padding:2px 6px; font-size:0.75rem;" onclick="excluirLista(${p.id},${l.id})">Excluir</button>
+                </div>
+              </div>
+            `).join('') : '<p style="font-size:0.8rem; color:var(--text-muted);">Nenhuma lista nesta pasta.</p>'}
+          </div>
+        `).join('');
+
+      // 4. Renderizar Tabela de Membros
+      document.getElementById('tbMembrosCorpo').innerHTML = membros.map(m => `
         <tr>
-          <td><strong>${m.nome}</strong> ${m.apelido ? `<br><small style="color:var(--text-muted)">(${m.apelido})</small>` : ''}</td>
+          <td><strong>${m.nome}</strong> ${m.apelido ? `(${m.apelido})` : ''}</td>
           <td>${m.fone || '-'}</td>
-          <td>${m.nascimento || '-'}</td>
-          <td>${m.ministerios && m.ministerios.length > 0 ? m.ministerios.map(x => `<span class="tag tag-blue">${x}</span>`).join(' ') : '<span class="tag">Visitante</span>'}</td>
-          <td>
-            <button class="btn-secondary" onclick="gerarPDFFichaMembro(${m.id})"><i data-lucide="file-text"></i> PDF Ficha</button>
-            <button class="btn-danger" onclick="removerMembro(${m.id})"><i data-lucide="trash"></i></button>
-          </td>
+          <td><button class="btn-danger" style="padding:2px 6px;" onclick="removerMembro(${m.id})">Remover</button></td>
         </tr>
       `).join('');
 
-      // 4. Lista de Ministérios
-      document.getElementById('listaMinisterios').innerHTML = ministerios.map(m => `
-        <span class="tag tag-green" style="margin-right:6px; font-size:0.85rem; padding:6px 10px;">
-          ${m} <i data-lucide="x" style="width:12px; cursor:pointer;" onclick="removerMinisterio('${m}')"></i>
-        </span>
-      `).join('');
-
-      // 5. Pastas Salvas
-      document.getElementById('listaPastasSalvas').innerHTML = pastasChamada.map(p => `
-        <div style="background:var(--bg-dark); border:1px solid var(--border-color); padding:12px; border-radius:6px; margin-bottom:10px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <strong>📁 ${p.titulo} (${p.data})</strong>
-            <button class="btn-secondary" onclick="gerarPDFPasta(${p.id})"><i data-lucide="printer"></i> Gerar PDF</button>
-          </div>
-        </div>
-      `).join('');
-
-      // 6. Calendário e Próximos Eventos
-      document.getElementById('listaEventosProximos').innerHTML = eventos.sort((a,b) => a.data.localeCompare(b.data)).map(e => `
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border-color);">
-          <span><strong>${e.data} às ${e.hora}</strong> - ${e.titulo}</span>
-          ${e.tipo === 'EVENTO' ? `
-            <button class="btn-danger" style="padding:2px 6px; font-size:0.75rem;" onclick="cancelarEvento(${e.id}, true)">Cancelar Todos Futuros</button>
-          ` : ''}
-        </div>
-      `).join('');
-
-      carregarMembrosNaChamada();
+      renderBoxChamada();
       lucide.createIcons();
     }
 
-    // DATA PADRÃO
-    document.getElementById('chamadaData').value = new Date().toISOString().split('T')[0];
-    document.getElementById('evtData').value = new Date().toISOString().split('T')[0];
+    document.getElementById('listaData').value = new Date().toISOString().split('T')[0];
   </script>
 </body>
 </html>
