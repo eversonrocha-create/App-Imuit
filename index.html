@@ -9,7 +9,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-  <!-- html2pdf.js -->
+  <!-- html2pdf.js para baixar relatórios em PDF diretamente -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <!-- Lucide Icons -->
@@ -113,7 +113,6 @@
     .status-online { color: #3fb950; border-color: rgba(63, 185, 80, 0.4); }
     .status-offline { color: #f85149; border-color: rgba(248, 81, 73, 0.4); }
 
-    /* BARRA DE NAVEGAÇÃO */
     .tabs-nav {
       display: flex;
       gap: 8px;
@@ -145,7 +144,6 @@
       background: rgba(88, 166, 255, 0.08);
     }
 
-    /* CARROSSEL E SLIDER DESLIZANTE */
     .carousel-view {
       overflow: hidden;
       width: 100%;
@@ -164,7 +162,6 @@
       padding: 5px;
     }
 
-    /* SETAS DE NAVEGAÇÃO PARA DESKTOP */
     .nav-arrow {
       position: fixed;
       top: 50%;
@@ -300,21 +297,69 @@
     .member-item-row.pendente { background: rgba(210, 153, 34, 0.15); border-left: 3px solid #d29922; }
     .member-item-row.concluido { background: rgba(63, 185, 80, 0.05); }
 
-    @media print {
-      body * { visibility: hidden; }
-      #printArea, #printArea * { visibility: visible; }
-      #printArea { position: absolute; left: 0; top: 0; width: 100%; color: #000 !important; background: #fff !important; padding: 20px; }
-      .no-print { display: none !important; }
+    /* CALENDÁRIO ESTILO GOOGLE */
+    .calendar-header-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .calendar-grid-month {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .cal-day-name {
+      text-align: center;
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: var(--text-muted);
+      padding: 4px 0;
+    }
+
+    .cal-day-cell {
+      min-height: 70px;
+      background: var(--bg-dark);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 4px;
+      font-size: 0.75rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cal-day-cell.other-month { opacity: 0.3; }
+    .cal-day-cell.today { border-color: var(--accent-blue); background: rgba(88, 166, 255, 0.05); }
+    .cal-day-num { font-weight: bold; margin-bottom: 2px; }
+
+    .cal-evt-badge {
+      background: rgba(88, 166, 255, 0.2);
+      color: var(--accent-blue);
+      border-radius: 3px;
+      padding: 2px 4px;
+      font-size: 0.65rem;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .cal-evt-badge.niver { background: rgba(210, 153, 34, 0.2); color: var(--accent-yellow); }
+
+    /* MODELO OCULTO PARA EXPORTAÇÃO PDF */
+    #pdfHiddenRender {
+      display: none;
     }
   </style>
 </head>
 <body>
 
-  <!-- SETAS DE NAVEGAÇÃO LATERAL (SOMENTE NO DESKTOP) -->
-  <button class="nav-arrow left no-print" onclick="navegarProximaJanela(-1)"><i data-lucide="chevron-left"></i></button>
-  <button class="nav-arrow right no-print" onclick="navegarProximaJanela(1)"><i data-lucide="chevron-right"></i></button>
+  <!-- SETAS DESK -->
+  <button class="nav-arrow left" onclick="navegarProximaJanela(-1)"><i data-lucide="chevron-left"></i></button>
+  <button class="nav-arrow right" onclick="navegarProximaJanela(1)"><i data-lucide="chevron-right"></i></button>
 
-  <div class="container no-print">
+  <div class="container">
     <header>
       <div class="logo-container">
         <div class="logo-img-wrapper">
@@ -334,7 +379,7 @@
       </div>
     </header>
 
-    <!-- ABAS -->
+    <!-- BARRA NAVEGAÇÃO ABAS -->
     <div class="tabs-nav">
       <button class="tab-btn active" onclick="irParaJanela(0)"><i data-lucide="clipboard-check"></i> 1. Chamada e Pastas</button>
       <button class="tab-btn" onclick="irParaJanela(1)"><i data-lucide="calendar"></i> 2. Calendário</button>
@@ -342,7 +387,6 @@
       <button class="tab-btn" onclick="irParaJanela(3)"><i data-lucide="help-circle"></i> 4. Tutorial de Uso</button>
     </div>
 
-    <!-- ÁREA DESLIZANTE DA INTERFACE -->
     <div class="carousel-view" id="touchArea">
       <div class="carousel-track" id="carouselTrack">
         
@@ -376,7 +420,6 @@
                 </div>
               </div>
 
-              <!-- FILTRO POR MINISTÉRIO -->
               <div class="form-group">
                 <label>Filtrar Chamada por Ministério:</label>
                 <select id="selFiltroMinChamada" onchange="renderBoxChamada()">
@@ -384,7 +427,6 @@
                 </select>
               </div>
 
-              <!-- CONTROLES DE ORDENAÇÃO -->
               <div style="background:var(--bg-dark); padding:10px; border-radius:6px; margin:10px 0; border:1px solid var(--border-color);">
                 <label style="display:block; margin-bottom:6px; font-weight:bold;">Ordenar Lista por:</label>
                 <div class="form-row">
@@ -395,17 +437,17 @@
               </div>
 
               <div id="boxMembrosChamada" style="max-height: 380px; overflow-y: auto; padding-right: 5px;"></div>
-              <button onclick="salvarListaNaPasta()" style="width:100%; margin-top:15px;"><i data-lucide="save"></i> Salvar Lista na Pasta</button>
+              <button onclick="salvarListaNaPasta()" style="width:100%; margin-top:15px; padding: 12px;"><i data-lucide="save"></i> Salvar Lista na Pasta</button>
             </div>
           </div>
 
           <div class="card">
-            <div class="card-title"><span><i data-lucide="folder-tree"></i> Pastas e Listas Salvas (Cultos e Eventos)</span></div>
+            <div class="card-title"><span><i data-lucide="folder-tree"></i> Pastas e Listas Salvas</span></div>
             <div id="arvorePastasEListas"></div>
           </div>
         </div>
 
-        <!-- ==================== JANELA 2: CALENDÁRIO ==================== -->
+        <!-- ==================== JANELA 2: CALENDÁRIO COMPACTO ==================== -->
         <div class="tab-content">
           <div class="grid-2">
             <div class="card">
@@ -440,9 +482,29 @@
             </div>
 
             <div class="card">
-              <div class="card-title"><span><i data-lucide="list"></i> Próximos Eventos Agendados</span></div>
-              <div id="listaEventosProximos"><p style="color: var(--text-muted);">Nenhum evento agendado.</p></div>
+              <div class="card-title"><span><i data-lucide="list"></i> Destaques dos Eventos</span></div>
+              <div id="listaEventosProximos" style="max-height:280px; overflow-y:auto;"><p style="color: var(--text-muted);">Nenhum evento agendado.</p></div>
             </div>
+          </div>
+
+          <!-- MÊS COMPACTO GOOGLE CALENDAR -->
+          <div class="card">
+            <div class="calendar-header-nav">
+              <button class="btn-secondary" onclick="mudarMesCalendario(-1)"><i data-lucide="chevron-left"></i> Mês Anterior</button>
+              <h3 id="calTituloMes" style="font-size: 1.1rem; color: var(--accent-blue);">Setembro 2026</h3>
+              <button class="btn-secondary" onclick="mudarMesCalendario(1)">Mês Seguinte <i data-lucide="chevron-right"></i></button>
+            </div>
+
+            <div class="calendar-grid-month">
+              <div class="cal-day-name">Dom</div>
+              <div class="cal-day-name">Seg</div>
+              <div class="cal-day-name">Ter</div>
+              <div class="cal-day-name">Qua</div>
+              <div class="cal-day-name">Qui</div>
+              <div class="cal-day-name">Sex</div>
+              <div class="cal-day-name">Sáb</div>
+            </div>
+            <div class="calendar-grid-month" id="gridCalendarioDias"></div>
           </div>
         </div>
 
@@ -461,12 +523,15 @@
                   <input type="text" id="memApelido" placeholder="Ex: Joãozinho">
                 </div>
                 <div class="form-group" style="flex: 1;">
-                  <label>Telefone:</label>
-                  <input type="text" id="memFone" placeholder="(00) 00000-0000" oninput="mascaraTelefone(this)">
+                  <label>Data de Nascimento:</label>
+                  <input type="date" id="memNasc">
                 </div>
               </div>
+              <div class="form-group">
+                <label>Telefone:</label>
+                <input type="text" id="memFone" placeholder="(00) 00000-0000" oninput="mascaraTelefone(this)">
+              </div>
               
-              <!-- MINISTÉRIOS ASSOCIAÇÃO -->
               <div class="form-group">
                 <label>Selecione o(s) Ministério(s) (ou Deixe em Branco para Visitante):</label>
                 <div id="boxCheckMinisterios" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:5px;"></div>
@@ -487,9 +552,9 @@
           </div>
 
           <div class="card">
-            <div class="card-title"><span><i data-lucide="users"></i> Membros Cadastrados</span></div>
+            <div class="card-title"><span><i data-lucide="users"></i> Lista Geral de Membros e Idades</span></div>
             <table style="width:100%;">
-              <thead><tr><th>Nome / Apelido</th><th>Contato</th><th>Ministérios</th><th>Ações</th></tr></thead>
+              <thead><tr><th>Nome / Apelido</th><th>Idade</th><th>Contato</th><th>Ministérios</th><th>Ações</th></tr></thead>
               <tbody id="tbMembrosCorpo"></tbody>
             </table>
           </div>
@@ -502,8 +567,8 @@
             <div style="line-height: 1.6; color: var(--text-main);">
               <p><strong>📱 Navegação por Gestos (Celular):</strong> Deslize o dedo para a esquerda ou para a direita para mudar de tela!</p>
               <p style="margin-top:10px;"><strong>💻 Navegação por Setas (Notebook):</strong> Use as setas flutuantes na lateral da tela para alternar de janela com um clique.</p>
-              <p style="margin-top:10px;"><strong>1. Chamada e Pastas:</strong> Crie uma pasta e salve cada lista de presença dentro dela. Você pode filtrar a chamada por Ministérios específicos (ex: fazer chamada só do Louvor).</p>
-              <p style="margin-top:10px;"><strong>2. Ministérios:</strong> Cadastre novos grupos na Janela 3. Os membros podem pertencer a 1 ou mais ministérios, ou ficar sem grupo caso sejam visitantes.</p>
+              <p style="margin-top:10px;"><strong>1. Chamada e Pastas:</strong> Crie uma pasta e salve cada lista de presença dentro dela. Você pode salvar a lista e depois clicar em <b>📄 Guardar / Baixar PDF</b> para exportar o relatório com gráficos.</p>
+              <p style="margin-top:10px;"><strong>2. Aniversários e Idade:</strong> Cadastre a data de nascimento dos membros para que a idade seja calculada automaticamente e o aniversário entre no Calendário Anual.</p>
             </div>
           </div>
         </div>
@@ -512,7 +577,8 @@
     </div>
   </div>
 
-  <div id="printArea"></div>
+  <!-- CONTAINER PARA GERAR PDF -->
+  <div id="pdfHiddenRender"></div>
 
   <script>
     const firebaseConfig = {
@@ -537,8 +603,10 @@
     let janelaAtual = 0;
     let temaAtual = "dark";
 
+    let dataCalendarioView = new Date(); // Controle de navegação do calendário mensal
+
     // SINCRONIZAÇÃO NUVEM
-    db.ref('app_imuit_v4').on('value', (snapshot) => {
+    db.ref('app_imuit_v5').on('value', (snapshot) => {
       const data = snapshot.val();
       if (data) {
         membros = data.membros || [];
@@ -555,13 +623,13 @@
     });
 
     function salvarDados() {
-      db.ref('app_imuit_v4').set({
+      db.ref('app_imuit_v5').set({
         membros, categoriasPastas, eventos, ministerios,
         ultimaAtualizacao: new Date().toISOString()
       });
     }
 
-    // SLIDER DESLIZANTE E NAVEGAÇÃO
+    // NAVEGAÇÃO ENTRE JANELAS
     function irParaJanela(index) {
       if (index < 0) index = 0;
       if (index > 3) index = 3;
@@ -579,7 +647,7 @@
       irParaJanela(janelaAtual + direcao);
     }
 
-    // EVENTOS DE SWIPE (DESLIZAR NO CELULAR)
+    // SWIPE NO TOUCH
     let touchStartX = 0;
     let touchEndX = 0;
     const touchArea = document.getElementById('touchArea');
@@ -587,16 +655,11 @@
     touchArea.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, false);
     touchArea.addEventListener('touchend', e => {
       touchEndX = e.changedTouches[0].screenX;
-      handleSwipe();
-    }, false);
-
-    function handleSwipe() {
-      const diff = touchStartX - touchEndX;
-      if (Math.abs(diff) > 50) {
-        if (diff > 0) navegarProximaJanela(1);  // Swipe para esquerda -> próxima janela
-        else navegarProximaJanela(-1);         // Swipe para direita -> janela anterior
+      if (Math.abs(touchStartX - touchEndX) > 50) {
+        if (touchStartX - touchEndX > 0) navegarProximaJanela(1);
+        else navegarProximaJanela(-1);
       }
-    }
+    }, false);
 
     function alternarTema() {
       temaAtual = temaAtual === "dark" ? "light" : "dark";
@@ -613,6 +676,18 @@
         v = v.replace(/^(\d\d)/, "($1) ");
       }
       input.value = v;
+    }
+
+    function calcularIdade(dataNasc) {
+      if (!dataNasc) return "-";
+      const hoje = new Date();
+      const nasc = new Date(dataNasc + 'T12:00:00');
+      let idade = hoje.getFullYear() - nasc.getFullYear();
+      const m = hoje.getMonth() - nasc.getMonth();
+      if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) {
+        idade--;
+      }
+      return idade > 0 ? `${idade} anos` : "0 anos";
     }
 
     // MINISTÉRIOS
@@ -690,7 +765,7 @@
       }
 
       if (listaFiltrada.length === 0) {
-        container.innerHTML = '<p style="color:var(--text-muted); padding:10px;">Nenhum membro encontrado para esta lista.</p>';
+        container.innerHTML = '<p style="color:var(--text-muted); padding:10px;">Nenhum membro para esta chamada.</p>';
         return;
       }
 
@@ -728,16 +803,25 @@
       }).join('');
     }
 
+    // CORREÇÃO DO SALVAMENTO DA LISTA
     function salvarListaNaPasta() {
-      const pastaId = parseInt(document.getElementById('selPastaDestino').value);
+      let pastaId = parseInt(document.getElementById('selPastaDestino').value);
       const titulo = document.getElementById('listaTitulo').value.trim();
       const data = document.getElementById('listaData').value;
 
-      if (!pastaId) return alert("Selecione uma pasta!");
-      if (!titulo || !data) return alert("Informe título e data!");
+      if (!titulo || !data) return alert("Informe o título e a data da lista!");
+
+      // Se não existir nenhuma pasta, cria uma automaticamente
+      if (categoriasPastas.length === 0) {
+        const novaP = { id: Date.now(), nome: "Listas de Chamada Geral", listas: [] };
+        categoriasPastas.push(novaP);
+        pastaId = novaP.id;
+      } else if (!pastaId) {
+        pastaId = categoriasPastas[0].id;
+      }
 
       const pasta = categoriasPastas.find(p => p.id === pastaId);
-      if (!pasta) return;
+      if (!pasta) return alert("Selecione uma pasta válida!");
 
       const registros = membros.map(m => ({
         membroId: m.id,
@@ -749,10 +833,64 @@
       chamadasEstadoLocal = {};
       document.getElementById('listaTitulo').value = '';
       salvarDados();
-      alert("Lista salva com sucesso!");
+      alert("Lista salva com sucesso na pasta!");
     }
 
-    // CALENDÁRIO
+    // CALENDÁRIO COMPACTO ESTILO GOOGLE
+    function mudarMesCalendario(delta) {
+      dataCalendarioView.setMonth(dataCalendarioView.getMonth() + delta);
+      renderCalendarioMensal();
+    }
+
+    function renderCalendarioMensal() {
+      const grid = document.getElementById('gridCalendarioDias');
+      const tituloMes = document.getElementById('calTituloMes');
+
+      const ano = dataCalendarioView.getFullYear();
+      const mes = dataCalendarioView.getMonth();
+
+      const nomesMeses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+      tituloMes.innerText = `${nomesMeses[mes]} ${ano}`;
+
+      const primeiroDiaSemana = new Date(ano, mes, 1).getDay();
+      const totalDiasMes = new Date(ano, mes + 1, 0).getDate();
+
+      const hoje = new Date();
+
+      let html = '';
+
+      // Preenche dias vazios do mês anterior
+      for (let i = 0; i < primeiroDiaSemana; i++) {
+        html += `<div class="cal-day-cell other-month"></div>`;
+      }
+
+      // Preenche dias do mês atual
+      for (let dia = 1; dia <= totalDiasMes; dia++) {
+        const dataFormatada = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+        const ehHoje = hoje.getFullYear() === ano && hoje.getMonth() === mes && hoje.getDate() === dia;
+
+        // Busca eventos do dia
+        const evtsDia = eventos.filter(e => e.data === dataFormatada);
+        
+        // Busca Aniversários do dia (independente do ano original)
+        const niversDia = membros.filter(m => {
+          if (!m.nascimento) return false;
+          const [nAno, nMes, nDia] = m.nascimento.split('-');
+          return parseInt(nMes) === (mes + 1) && parseInt(nDia) === dia;
+        });
+
+        html += `
+          <div class="cal-day-cell ${ehHoje ? 'today' : ''}">
+            <span class="cal-day-num">${dia}</span>
+            ${evtsDia.map(e => `<div class="cal-evt-badge">${e.hora ? e.hora + ' ' : ''}${e.titulo}</div>`).join('')}
+            ${niversDia.map(m => `<div class="cal-evt-badge niver">🎂 ${m.nome}</div>`).join('')}
+          </div>
+        `;
+      }
+
+      grid.innerHTML = html;
+    }
+
     function salvarEvento() {
       const titulo = document.getElementById('evtTitulo').value.trim();
       const dataStr = document.getElementById('evtData').value;
@@ -762,7 +900,6 @@
 
       if (!titulo || !dataStr) return alert("Informe título e data!");
 
-      const grupoRecorrenciaId = recorrencia !== 'UNICO' ? Date.now() : null;
       let dataBase = new Date(dataStr + 'T12:00:00');
 
       for (let i = 0; i < (recorrencia === 'UNICO' ? 1 : qtd); i++) {
@@ -770,7 +907,7 @@
         if (recorrencia === 'SEMANAL') d.setDate(d.getDate() + (i * 7));
         if (recorrencia === 'MENSAL') d.setMonth(d.getMonth() + i);
 
-        eventos.push({ id: Date.now() + i, grupoId: grupoRecorrenciaId, titulo, data: d.toISOString().split('T')[0], hora });
+        eventos.push({ id: Date.now() + i, titulo, data: d.toISOString().split('T')[0], hora });
       }
 
       document.getElementById('evtTitulo').value = '';
@@ -785,8 +922,8 @@
       }
     }
 
-    // PDF IMPRESSÃO
-    function gerarPDFLista(pastaId, listaId) {
+    // EXPORTAÇÃO E DOWNLOAD PDF
+    function baixarPDFLista(pastaId, listaId) {
       const pasta = categoriasPastas.find(p => p.id === pastaId);
       if (!pasta) return;
       const lista = pasta.listas.find(l => l.id === listaId);
@@ -801,71 +938,90 @@
       const pctPresente = total > 0 ? Math.round((presentes / total) * 100) : 0;
       const pctFalta = total > 0 ? Math.round((faltas / total) * 100) : 0;
 
-      const area = document.getElementById('printArea');
-      area.innerHTML = `
-        <div style="font-family: Arial, sans-serif; color: #000; padding: 20px;">
-          <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
-            <h1 style="margin: 0; font-size: 22px;">APP IMUIT - RELATÓRIO DE PRESENÇA</h1>
-            <h3 style="margin: 5px 0 0 0; color: #555;">Pasta: ${pasta.nome} | Evento: ${lista.titulo} (${lista.data})</h3>
-          </div>
-          <div style="background: #f9f9f9; border: 1px solid #ccc; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
-            <h4 style="margin-top:0;">Resumo da Frequência Total (${total} Membros)</h4>
-            <div style="display: flex; height: 24px; border-radius: 4px; overflow: hidden; margin: 10px 0; border: 1px solid #999;">
-              <div style="width: ${pctPresente}%; background: #238636; color: #fff; text-align: center; font-size: 11px; line-height: 24px;">${pctPresente}% Pres.</div>
-              <div style="width: ${pctFalta}%; background: #da3633; color: #fff; text-align: center; font-size: 11px; line-height: 24px;">${pctFalta}% Aus.</div>
-            </div>
-            <p style="font-size: 12px; margin: 0; display: flex; justify-content: space-between;">
-              <span><strong>✓ Presentes:</strong> ${presentes}</span>
-              <span><strong>👤 Visitantes:</strong> ${visitantes}</span>
-              <span><strong>🟡 Justificados:</strong> ${justificados}</span>
-              <span><strong>✗ Faltas:</strong> ${faltas}</span>
-            </p>
-          </div>
-          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
-            <thead>
-              <tr style="background: #eee;">
-                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Membro</th>
-                <th style="border: 1px solid #ddd; padding: 8px; text-align: center; width: 120px;">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${lista.registros.map(r => `<tr><td style="border: 1px solid #ddd; padding: 8px;">${r.nome}</td><td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">${r.status}</td></tr>`).join('')}
-            </tbody>
-          </table>
+      const element = document.createElement('div');
+      element.style.padding = "20px";
+      element.style.fontFamily = "Arial, sans-serif";
+      element.style.color = "#000";
+
+      element.innerHTML = `
+        <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
+          <h1 style="margin: 0; font-size: 20px; color: #000;">APP IMUIT - RELATÓRIO DE PRESENÇA</h1>
+          <h3 style="margin: 5px 0 0 0; color: #444;">Pasta: ${pasta.nome} | Lista: ${lista.titulo} (${lista.data})</h3>
         </div>
+
+        <div style="background: #f4f4f4; border: 1px solid #ddd; padding: 12px; border-radius: 6px; margin-bottom: 20px;">
+          <h4 style="margin:0 0 8px 0;">Frequência Geral (${total} Registrados)</h4>
+          <div style="display: flex; height: 20px; border-radius: 4px; overflow: hidden; margin: 8px 0; border: 1px solid #aaa;">
+            <div style="width: ${pctPresente}%; background: #238636; color: #fff; text-align: center; font-size: 10px; line-height: 20px;">${pctPresente}% Pres.</div>
+            <div style="width: ${pctFalta}%; background: #da3633; color: #fff; text-align: center; font-size: 10px; line-height: 20px;">${pctFalta}% Aus.</div>
+          </div>
+          <p style="font-size: 11px; margin: 0; display: flex; justify-content: space-between;">
+            <span><b>✓ Presentes:</b> ${presentes}</span>
+            <span><b>👤 Visitantes:</b> ${visitantes}</span>
+            <span><b>🟡 Justificados:</b> ${justificados}</span>
+            <span><b>✗ Faltas:</b> ${faltas}</span>
+          </p>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+          <thead>
+            <tr style="background: #eee;">
+              <th style="border: 1px solid #ccc; padding: 6px; text-align: left;">Membro</th>
+              <th style="border: 1px solid #ccc; padding: 6px; text-align: center;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${lista.registros.map(r => `
+              <tr>
+                <td style="border: 1px solid #ccc; padding: 6px;">${r.nome}</td>
+                <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-weight: bold;">${r.status}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
       `;
-      window.print();
+
+      const opt = {
+        margin:       10,
+        filename:     `Relatorio_${pasta.nome}_${lista.titulo}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(element).save();
     }
 
     // CADASTRO DE MEMBRO
     function salvarMembro() {
       const nome = document.getElementById('memNome').value.trim();
       const apelido = document.getElementById('memApelido').value.trim();
+      const nascimento = document.getElementById('memNasc').value;
       const fone = document.getElementById('memFone').value.trim();
 
-      if (!nome) return alert("Informe o nome!");
+      if (!nome) return alert("Informe o nome do membro!");
 
       const minSel = [];
       document.querySelectorAll('.min-checkbox:checked').forEach(c => minSel.push(c.value));
 
-      membros.push({ id: Date.now(), nome, apelido, fone, ministerios: minSel });
+      membros.push({ id: Date.now(), nome, apelido, nascimento, fone, ministerios: minSel });
       
       document.getElementById('memNome').value = '';
       document.getElementById('memApelido').value = '';
+      document.getElementById('memNasc').value = '';
       document.getElementById('memFone').value = '';
       salvarDados();
     }
 
     function removerMembro(id) {
-      if (confirm("Remover membro?")) {
+      if (confirm("Remover membro do sistema?")) {
         membros = membros.filter(m => m.id !== id);
         salvarDados();
       }
     }
 
-    // RENDERIZADOR CENTRAL
+    // RENDERIZADOR
     function renderTudo() {
-      // 1. Renderizar Pastas
       document.getElementById('listaCategoriasPastas').innerHTML = categoriasPastas.length === 0 ? '<p style="color:var(--text-muted);">Nenhuma pasta.</p>' :
         categoriasPastas.map(p => `
           <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border-color);">
@@ -879,7 +1035,6 @@
 
       document.getElementById('selPastaDestino').innerHTML = categoriasPastas.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
 
-      // 2. Renderizar Ministérios
       document.getElementById('listaMinisteriosCadastrados').innerHTML = ministerios.map(m => `
         <span class="tag tag-green" style="padding:4px 8px; margin-bottom:4px;">
           ${m} <i data-lucide="x" style="width:12px; cursor:pointer;" onclick="excluirMinisterio('${m}')"></i>
@@ -894,8 +1049,7 @@
 
       document.getElementById('selFiltroMinChamada').innerHTML = '<option value="TODOS">Todos os Membros</option>' + ministerios.map(m => `<option value="${m}">${m}</option>`).join('');
 
-      // 3. Renderizar Árvore de Pastas > Listas
-      document.getElementById('arvorePastasEListas').innerHTML = categoriasPastas.length === 0 ? '<p style="color:var(--text-muted);">Nenhuma lista cadastrada.</p>' :
+      document.getElementById('arvorePastasEListas').innerHTML = categoriasPastas.length === 0 ? '<p style="color:var(--text-muted);">Nenhuma lista salva.</p>' :
         categoriasPastas.map(p => `
           <div class="folder-box">
             <div class="folder-header"><strong>📁 ${p.nome}</strong></div>
@@ -903,25 +1057,24 @@
               <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px dashed var(--border-color);">
                 <span>📄 <strong>${l.titulo}</strong> <small style="color:var(--text-muted)">(${l.data})</small></span>
                 <div>
-                  <button class="btn-secondary" style="padding:2px 6px; font-size:0.75rem;" onclick="gerarPDFLista(${p.id},${l.id})">🖨️ PDF / Imprimir</button>
-                  <button class="btn-danger" style="padding:2px 6px; font-size:0.75rem;" onclick="excluirLista(${p.id},${l.id})">Excluir</button>
+                  <button class="btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="baixarPDFLista(${p.id},${l.id})">📄 Guardar / Baixar PDF</button>
+                  <button class="btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="excluirLista(${p.id},${l.id})">Excluir</button>
                 </div>
               </div>
             `).join('') : '<p style="font-size:0.8rem; color:var(--text-muted);">Nenhuma lista nesta pasta.</p>'}
           </div>
         `).join('');
 
-      // 4. Renderizar Membros
       document.getElementById('tbMembrosCorpo').innerHTML = membros.map(m => `
         <tr>
           <td><strong>${m.nome}</strong> ${m.apelido ? `(${m.apelido})` : ''}</td>
+          <td><span class="tag tag-green">${calcularIdade(m.nascimento)}</span></td>
           <td>${m.fone || '-'}</td>
           <td>${m.ministerios && m.ministerios.length > 0 ? m.ministerios.map(x => `<span class="tag tag-blue">${x}</span>`).join('') : '<span class="tag">Visitante</span>'}</td>
           <td><button class="btn-danger" style="padding:2px 6px;" onclick="removerMembro(${m.id})">Remover</button></td>
         </tr>
       `).join('');
 
-      // 5. Renderizar Eventos
       document.getElementById('listaEventosProximos').innerHTML = eventos.length === 0 ? '<p style="color:var(--text-muted);">Nenhum evento agendado.</p>' :
         eventos.sort((a,b) => a.data.localeCompare(b.data)).map(e => `
           <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border-color);">
@@ -931,6 +1084,7 @@
         `).join('');
 
       renderBoxChamada();
+      renderCalendarioMensal();
       lucide.createIcons();
     }
 
