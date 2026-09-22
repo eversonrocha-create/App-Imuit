@@ -1,1120 +1,664 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sistema de Gestão & Presença - Igreja Missionária</title>
-  
-  <!-- ÍCONE DO SITE E APLICATIVO (LOGO.PNG DA PASTA LOCAL COM ANTI-CACHE) -->
-  <link rel="icon" type="image/png" href="./logo.png?v=2" />
-  <link rel="apple-touch-icon" href="./logo.png?v=2" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Imuit - Gestão Integrada de Presença</title>
+
+  <!-- Firebase SDKs (v9 Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
     :root {
-      /* MODO ESCURO */
-      --bg-dark: #0f0a1c;
-      --card-dark: rgba(26, 18, 48, 0.9);
-      --border-dark: rgba(147, 51, 234, 0.3);
-      --text-dark: #f1f5f9;
-      --muted-dark: #a78bfa;
-      --primary-dark: #ec4899;
-      --primary-hover-dark: #db2777;
-
-      /* MODO CLARO */
-      --bg-light: #f8fafc;
-      --card-light: #ffffff;
-      --border-light: #cbd5e1;
-      --text-light: #0f172a;
-      --muted-light: #64748b;
-      --primary-light: #7c3aed;
-      --primary-hover-light: #6d28d9;
-
-      /* STATUS COLORS */
-      --present-bg: rgba(34, 197, 94, 0.15);
-      --present-text: #16a34a;
-      --absent-bg: rgba(239, 68, 68, 0.15);
-      --absent-text: #dc2626;
-      --visitor-bg: rgba(168, 85, 247, 0.15);
-      --visitor-text: #9333ea;
-      --pending-bg: rgba(245, 158, 11, 0.15);
-      --pending-text: #d97706;
+      --bg-dark: #090d16;
+      --panel-bg: rgba(22, 27, 34, 0.85);
+      --panel-border: rgba(48, 54, 61, 0.8);
+      --accent-blue: #58a6ff;
+      --accent-green: #238636;
+      --accent-green-hover: #2ea043;
+      --accent-red: #da3633;
+      --accent-red-hover: #f85149;
+      --text-primary: #c9d1d9;
+      --text-heading: #f0f6fc;
+      --text-muted: #8b949e;
+      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
     }
 
-    body.theme-dark {
-      --bg: var(--bg-dark);
-      --card: var(--card-dark);
-      --border: var(--border-dark);
-      --text: var(--text-dark);
-      --muted: var(--muted-dark);
-      --primary: var(--primary-dark);
-      --primary-hover: var(--primary-hover-dark);
-    }
-
-    body.theme-light {
-      --bg: var(--bg-light);
-      --card: var(--card-light);
-      --border: var(--border-light);
-      --text: var(--text-light);
-      --muted: var(--muted-light);
-      --primary: var(--primary-light);
-      --primary-hover: var(--primary-hover-light);
-    }
-
-    * { box-sizing: border-box; }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      margin: 0;
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(circle at top right, #161b22, #090d16);
+      color: var(--text-primary);
       min-height: 100vh;
-      transition: background-color 0.3s ease, color 0.3s ease;
-      position: relative;
+      padding: 24px;
     }
 
-    #bgCanvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .container {
-      position: relative;
-      z-index: 1;
+    .app-container {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 24px 20px 40px;
     }
 
-    /* BARRA SUPERIOR E TEMA */
-    .top-bar {
+    /* HEADER & STATUS BAR */
+    header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .theme-toggle-btn {
-      background: var(--card);
-      border: 2px solid var(--border);
-      border-radius: 30px;
-      padding: 6px 16px;
-      color: var(--text);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 700;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-
-    /* CABEÇALHO DA IGREJA */
-    .header {
-      text-align: center;
+      background: var(--panel-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 20px 28px;
       margin-bottom: 24px;
+      box-shadow: var(--glass-shadow);
+      flex-wrap: wrap;
+      gap: 16px;
     }
 
     .brand-title {
-      font-size: clamp(2.2rem, 5vw, 3.5rem);
-      font-weight: 900;
-      margin: 0;
-      text-transform: uppercase;
-      background: linear-gradient(135deg, #a855f7, #ec4899, #3b82f6);
-      background-clip: text;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: 0 10px 25px rgba(168, 85, 247, 0.2);
-    }
-
-    .brand-slogan {
-      font-size: 1.2rem;
-      color: var(--muted);
-      margin-top: 4px;
-      font-weight: 500;
-    }
-
-    /* NAVEGAÇÃO DE ABAS */
-    .nav-tabs {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-    }
-
-    .tab-btn {
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 10px 20px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: 700;
-      transition: all 0.2s ease;
-    }
-
-    .tab-btn.active {
-      background: var(--primary);
-      color: #fff;
-      border-color: var(--primary);
-    }
-
-    /* ABAS DE CONTEÚDO */
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    .panel {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 24px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-      margin-bottom: 20px;
-    }
-
-    .panel h2 {
-      margin-top: 0;
-      margin-bottom: 16px;
-      font-size: 1.25rem;
-      border-bottom: 2px solid var(--border);
-      padding-bottom: 8px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1.3fr;
-      gap: 20px;
-    }
-
-    .form-group { margin-bottom: 14px; }
-
-    .form-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-    }
-
-    input, select, button { font: inherit; }
-
-    input[type="text"], input[type="date"], input[type="time"], input[type="number"], select {
-      flex: 1;
-      min-width: 140px;
-      background: rgba(0,0,0,0.04);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px 14px;
-      color: var(--text);
-      outline: none;
-    }
-
-    body.theme-dark input, body.theme-dark select {
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    button {
-      border: none;
-      border-radius: 12px;
-      padding: 10px 16px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    button:hover { transform: translateY(-2px); }
-
-    .btn-primary { background: var(--primary); color: #fff; }
-    .btn-danger { background: #ef4444; color: #fff; }
-    .btn-success { background: #22c55e; color: #fff; }
-    .btn-purple { background: #a855f7; color: #fff; }
-    .btn-secondary { background: rgba(148, 163, 184, 0.2); color: var(--text); }
-
-    /* CHECKBOXES DE MINISTÉRIOS */
-    .checkbox-group {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 8px;
-      margin-top: 6px;
-      background: rgba(0,0,0,0.02);
-      padding: 10px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-    }
-
-    .checkbox-item {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 16px;
+    }
+
+    .brand-title h1 {
+      font-size: 1.8rem;
+      color: var(--accent-blue);
+      letter-spacing: -0.5px;
+    }
+
+    .brand-title p {
       font-size: 0.85rem;
+      color: var(--text-muted);
     }
 
-    /* ESTATÍSTICAS */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-bottom: 18px;
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
     }
 
-    .stat-box {
-      background: rgba(0,0,0,0.03);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 12px 6px;
-      text-align: center;
+    .clock-display {
+      font-family: monospace;
+      font-size: 1rem;
+      color: var(--text-muted);
+      background: rgba(0,0,0,0.3);
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--panel-border);
     }
 
-    .stat-box .num { font-size: 1.5rem; font-weight: 800; display: block; }
-    .stat-box .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; }
-
-    /* TABELA */
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid var(--border); }
-    th { font-size: 0.8rem; text-transform: uppercase; color: var(--muted); }
-
-    .status-tag {
-      padding: 4px 10px;
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
       border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      display: inline-block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: rgba(13, 17, 23, 0.6);
+      border: 1px solid var(--panel-border);
+    }
+    .status-badge.online { color: #3fb950; border-color: rgba(63, 185, 80, 0.3); }
+    .status-badge.offline { color: #f85149; border-color: rgba(248, 81, 73, 0.3); }
+
+    /* LAYOUT GRID */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
     }
 
-    .status-presente { background: var(--present-bg); color: var(--present-text); }
-    .status-faltou { background: var(--absent-bg); color: var(--absent-text); }
-    .status-visitante { background: var(--visitor-bg); color: var(--visitor-text); }
-    .status-pendente { background: var(--pending-bg); color: var(--pending-text); }
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
 
-    .actions-cell { display: flex; gap: 4px; flex-wrap: wrap; }
-    .mini-btn { padding: 6px 8px; font-size: 0.75rem; border-radius: 8px; }
+    /* CARDS & PANELS */
+    .panel {
+      background: var(--panel-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: var(--glass-shadow);
+      display: flex;
+      flex-direction: column;
+    }
 
-    /* CALENDÁRIO */
-    .calendar-controls {
+    .panel-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .panel-title {
+      font-size: 1.25rem;
+      color: var(--text-heading);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* FORM CONTROLS */
+    .form-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    input[type="text"], input[type="date"], select {
+      flex: 1;
+      min-width: 140px;
+      background: #0d1117;
+      border: 1px solid var(--panel-border);
+      color: var(--text-primary);
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+    }
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 6px;
+      border: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary { background: var(--accent-green); color: #fff; }
+    .btn-primary:hover { background: var(--accent-green-hover); }
+    .btn-danger { background: var(--accent-red); color: #fff; }
+    .btn-danger:hover { background: var(--accent-red-hover); }
+    .btn-secondary { background: #21262d; color: var(--text-primary); border: 1px solid var(--panel-border); }
+    .btn-secondary:hover { background: #30363d; }
+
+    /* TABLES & LISTS */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(48, 54, 61, 0.5);
+    }
+
+    th {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* FOLDER CARDS */
+    .folder-card {
+      background: #0d1117;
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 16px;
       margin-bottom: 16px;
     }
 
-    .calendar-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 8px;
+    .folder-title-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
     }
 
-    .cal-day-head {
-      text-align: center;
-      font-weight: 700;
-      font-size: 0.85rem;
-      color: var(--muted);
-      padding: 6px 0;
+    .member-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(48, 54, 61, 0.3);
     }
 
-    .cal-cell {
-      min-height: 90px;
-      background: rgba(0,0,0,0.02);
-      border: 1px solid var(--border);
+    .member-item:last-child { border-bottom: none; }
+
+    /* BADGES */
+    .badge {
+      padding: 4px 10px;
       border-radius: 12px;
-      padding: 6px;
       font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .badge-success { background: rgba(63, 185, 80, 0.15); color: #3fb950; }
+    .badge-warning { background: rgba(210, 153, 34, 0.15); color: #d29922; }
+    .badge-danger { background: rgba(248, 81, 73, 0.15); color: #f85149; }
+
+    /* MODAL WINDOWS */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
     }
 
-    body.theme-dark .cal-cell { background: rgba(255, 255, 255, 0.02); }
-
-    .cal-day-number { font-weight: 800; margin-bottom: 4px; }
-    .cal-event-tag {
-      background: var(--primary);
-      color: #fff;
-      border-radius: 6px;
-      padding: 2px 4px;
-      font-size: 0.7rem;
-      margin-bottom: 2px;
-      display: block;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      cursor: pointer;
-    }
-
-    .cal-event-aniv { background: #a855f7; }
-
-    /* MODO IMPRESSÃO / PDF (LIMPO) */
-    @media print {
-      body {
-        background: #ffffff !important;
-        color: #000000 !important;
-        font-family: Arial, sans-serif !important;
-      }
-
-      #bgCanvas, .top-bar, .nav-tabs, .list-header-actions, .actions-cell, th:last-child, td:last-child, .form-panel, .folder-save-box, .filter-bar {
-        display: none !important;
-      }
-
-      .container { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
-      .grid { display: block !important; }
-      .panel { background: none !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
-
-      .brand-title {
-        color: #000 !important;
-        -webkit-text-fill-color: #000 !important;
-        font-size: 2.2rem !important;
-        text-shadow: none !important;
-      }
-
-      .brand-slogan { color: #555 !important; }
-
-      .stats-grid {
-        grid-template-columns: repeat(4, 1fr) !important;
-        gap: 10px !important;
-        margin-bottom: 20px !important;
-      }
-
-      .stat-box { border: 1px solid #ccc !important; background: #f9f9f9 !important; }
-      .stat-box .num { color: #000 !important; }
-
-      table { width: 100% !important; border-collapse: collapse !important; }
-      th, td { border-bottom: 1px solid #ddd !important; color: #000 !important; padding: 8px 4px !important; }
-
-      .status-tag { border: 1px solid #ccc !important; background: #fff !important; color: #000 !important; }
-    }
-
-    @media (max-width: 768px) {
-      .grid { grid-template-columns: 1fr; }
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .modal-content {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 24px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: var(--glass-shadow);
     }
   </style>
 </head>
-<body class="theme-dark">
-  <canvas id="bgCanvas"></canvas>
+<body>
 
-  <div class="container">
-    <div class="top-bar">
-      <div></div>
-      <button class="theme-toggle-btn" id="btnThemeToggle">
-        <span id="themeIcon">☀️</span> <span id="themeLabel">Modo Claro</span>
-      </button>
-    </div>
-
-    <header class="header">
-      <h1 class="brand-title">Igreja Missionária</h1>
-      <div class="brand-slogan">Aqui é o seu Lugar</div>
+  <div class="app-container">
+    <!-- HEADER -->
+    <header>
+      <div class="brand-title">
+        <i data-lucide="shield-check" style="width: 36px; height: 36px; color: var(--accent-blue);"></i>
+        <div>
+          <h1>App Imuit - Sistema de Presença</h1>
+          <p>Sincronização em Tempo Real na Nuvem (Firebase)</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="clock-display" id="clock">00:00:00</div>
+        <div id="statusBadge" class="status-badge offline">
+          <i data-lucide="wifi-off" style="width: 14px; height: 14px;"></i>
+          <span id="statusText">Conectando...</span>
+        </div>
+      </div>
     </header>
 
-    <!-- NAVEGAÇÃO DE ABAS -->
-    <div class="nav-tabs">
-      <button class="tab-btn active" onclick="trocarAba('abaListas')">📋 Listas & Presença</button>
-      <button class="tab-btn" onclick="trocarAba('abaMembros')">👥 Ficha de Membros</button>
-      <button class="tab-btn" onclick="trocarAba('abaPastas')">📁 Pastas de Listas</button>
-      <button class="tab-btn" onclick="trocarAba('abaCalendario')">📅 Calendário de Eventos</button>
-    </div>
-
-    <!-- 1. ABA LISTAS DE PRESENÇA -->
-    <div id="abaListas" class="tab-content active">
-      <div class="grid">
-        <div class="panel form-panel">
-          <h2>Nova Lista de Presença</h2>
-          <div class="form-row">
-            <input type="text" id="inputNomeLista" placeholder="Nome da Lista (ex: Culto 24/09)" />
-            <button class="btn-primary" id="btnCriarLista">Criar Lista</button>
-          </div>
-
-          <h2>Adicionar Visitante Rápido</h2>
-          <div class="form-row">
-            <input type="text" id="inputNomeVisitante" placeholder="Nome do Visitante" />
-            <button class="btn-purple" id="btnAddVisitante">Adicionar</button>
-          </div>
-
-          <h2>Importar Todos os Membros</h2>
-          <p style="font-size: 0.85rem; color: var(--muted);">Importa a lista geral de membros cadastrados para esta chamada.</p>
-          <button class="btn-success" id="btnImportarMembros">Importar Membros</button>
+    <!-- GRID PRINCIPAL -->
+    <div class="main-grid">
+      <!-- PAINEL DE MEMBROS -->
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title"><i data-lucide="users"></i> Gestão de Membros</h2>
+          <button class="btn-secondary" onclick="exportarCSV()"><i data-lucide="download"></i> CSV</button>
         </div>
 
-        <div class="panel">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;" class="list-header-actions">
-            <h2>Lista em Andamento</h2>
-            <div style="display: flex; gap: 8px;">
-              <button class="btn-primary mini-btn" id="btnImprimir">🖨️ PDF / Imprimir</button>
-              <button class="btn-danger mini-btn" id="btnExcluirLista">Excluir Lista</button>
-            </div>
-          </div>
+        <div class="form-row">
+          <input type="text" id="nomeMembro" placeholder="Nome do Membro">
+          <input type="text" id="cargoMembro" placeholder="Cargo / Função">
+          <button class="btn-primary" onclick="adicionarMembro()"><i data-lucide="user-plus"></i> Add</button>
+        </div>
 
-          <div class="form-row">
-            <select id="selectListaAtiva"></select>
-          </div>
+        <div class="form-row">
+          <input type="text" id="buscaMembro" placeholder="Buscar membro na lista..." oninput="filtrarMembros()">
+        </div>
 
-          <!-- QUADROS ESTATÍSTICOS -->
-          <div class="stats-grid">
-            <div class="stat-box"><span class="num" id="cntTotal">0</span><span class="label">Total</span></div>
-            <div class="stat-box"><span class="num" id="cntPresentes">0</span><span class="label">Presentes</span></div>
-            <div class="stat-box"><span class="num" id="cntFaltas">0</span><span class="label">Faltas</span></div>
-            <div class="stat-box"><span class="num" id="cntVisitantes">0</span><span class="label">Visitantes</span></div>
-          </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Cargo</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaMembros">
+              <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Carregando nuvem...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-          <div class="form-row filter-bar">
-            <select id="selectOrdenacao">
-              <option value="pendente">Pendentes Primeiro</option>
-              <option value="status">Por Status</option>
-              <option value="nome">Ordem Alfabética</option>
-            </select>
-          </div>
+      <!-- PAINEL DE CHAMADAS / PASTAS -->
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title"><i data-lucide="folder-check"></i> Pastas de Chamada</h2>
+        </div>
 
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Nome</th>
-                  <th>Status</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyLista"></tbody>
-            </table>
-          </div>
+        <div class="form-row">
+          <input type="text" id="nomePasta" placeholder="Nome do Culto / Evento">
+          <input type="date" id="dataPasta">
+          <button class="btn-primary" onclick="criarPasta()"><i data-lucide="folder-plus"></i> Criar</button>
+        </div>
 
-          <!-- FINALIZAR E SALVAR NA PASTA -->
-          <div class="folder-save-box" style="margin-top: 20px; padding-top: 15px; border-top: 2px dashed var(--border);">
-            <h3>Finalizar e Arquivar Lista na Pasta</h3>
-            <div class="form-row">
-              <select id="selectPastaParaSalvar">
-                <option value="">Selecione uma pasta...</option>
-              </select>
-              <button class="btn-success" id="btnSalvarNaPasta">Arquivar Lista</button>
-            </div>
-          </div>
+        <div id="listaPastas" style="margin-top: 10px;">
+          <p style="color: var(--text-muted); text-align: center;">Nenhuma pasta cadastrada.</p>
         </div>
       </div>
     </div>
 
-    <!-- 2. ABA FICHA DE MEMBROS -->
-    <div id="abaMembros" class="tab-content">
-      <div class="grid">
-        <div class="panel">
-          <h2>Cadastrar / Editar Membro</h2>
-          <form id="formMembro">
-            <div class="form-group">
-              <label>Nome Completo:</label>
-              <input type="text" id="membroNome" required />
-            </div>
-            <div class="form-row">
-              <div class="form-group" style="flex:1;">
-                <label>Data de Nascimento:</label>
-                <input type="date" id="membroNasc" required />
-              </div>
-              <div class="form-group" style="flex:1;">
-                <label>WhatsApp / Tel:</label>
-                <input type="text" id="membroTel" placeholder="(00) 00000-0000" />
-              </div>
-            </div>
+    <!-- ESTATÍSTICAS E RELATÓRIO GERAL -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title"><i data-lucide="bar-chart-3"></i> Frequência & Estatísticas Gerais</h2>
+        <button class="btn-secondary" onclick="abrirModalBackup()"><i data-lucide="database"></i> Backup JSON</button>
+      </div>
 
-            <div class="form-group">
-              <label>Ministérios que participa:</label>
-              <div class="checkbox-group" id="containerMinisterios">
-                <label class="checkbox-item"><input type="checkbox" value="Louvor"> Louvor</label>
-                <label class="checkbox-item"><input type="checkbox" value="Infantil"> Infantil</label>
-                <label class="checkbox-item"><input type="checkbox" value="Jovens"> Jovens</label>
-                <label class="checkbox-item"><input type="checkbox" value="Recepção"> Recepção</label>
-                <label class="checkbox-item"><input type="checkbox" value="Mídia / Som"> Mídia / Som</label>
-                <label class="checkbox-item"><input type="checkbox" value="Intercessão"> Intercessão</label>
-                <label class="checkbox-item"><input type="checkbox" value="Teatro"> Teatro</label>
-              </div>
-            </div>
-
-            <button type="submit" class="btn-primary" style="width: 100%;">Salvar Ficha do Membro</button>
-          </form>
-        </div>
-
-        <div class="panel">
-          <h2>Membros Cadastrados</h2>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Nome</th>
-                  <th>Idade</th>
-                  <th>Ministérios</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyMembros"></tbody>
-            </table>
-          </div>
-        </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Membro</th>
+              <th>Cargo</th>
+              <th>Presenças / Total</th>
+              <th>Frequência</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaRelatorio">
+            <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Sem dados para estatísticas.</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
+  </div>
 
-    <!-- 3. ABA PASTAS DE LISTAS -->
-    <div id="abaPastas" class="tab-content">
-      <div class="grid">
-        <div class="panel">
-          <h2>Criar Nova Pasta</h2>
-          <div class="form-row">
-            <input type="text" id="inputNomePasta" placeholder="Nome da Pasta (ex: Culto de Domingo)" />
-            <button class="btn-primary" id="btnCriarPasta">Criar Pasta</button>
-          </div>
-
-          <h2>Pastas Existentes</h2>
-          <div id="listaPastasExistentes"></div>
-        </div>
-
-        <div class="panel">
-          <h2>Listas Arquivadas na Pasta</h2>
-          <div class="form-row">
-            <select id="selectPastaVisualizar"></select>
-          </div>
-          <div id="conteudoPastaVisualizada">
-            <p style="color: var(--muted);">Selecione uma pasta para visualizar as listas salvas.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 4. ABA CALENDÁRIO -->
-    <div id="abaCalendario" class="tab-content">
-      <div class="grid">
-        <div class="panel">
-          <h2>Agendar Evento</h2>
-          <form id="formEvento">
-            <div class="form-group">
-              <label>Título do Evento:</label>
-              <input type="text" id="evtTitulo" placeholder="ex: Quartas de Consagração" required />
-            </div>
-            <div class="form-group">
-              <label>Tipo de Agendamento:</label>
-              <select id="evtTipoRecorrencia">
-                <option value="unico">Evento de Data Única (ex: Culto de Natal)</option>
-                <option value="semanal">Recorrente Semanal (Toda semana no mesmo dia)</option>
-              </select>
-            </div>
-            <div class="form-row">
-              <div class="form-group" style="flex:1;">
-                <label>Data Inicial / Data:</label>
-                <input type="date" id="evtData" required />
-              </div>
-              <div class="form-group" style="flex:1;">
-                <label>Horário:</label>
-                <input type="time" id="evtHora" required />
-              </div>
-            </div>
-            <button type="submit" class="btn-primary" style="width: 100%;">Agendar Evento</button>
-          </form>
-
-          <h2 style="margin-top: 20px;">Legenda</h2>
-          <p><span style="color:#ec4899;">■</span> Eventos Agendados | <span style="color:#a855f7;">■</span> Aniversários do Mês</p>
-        </div>
-
-        <div class="panel">
-          <div class="calendar-controls">
-            <button class="btn-secondary mini-btn" id="btnCalPrev">◄ Anterior</button>
-            <h2 id="calTituloMes" style="margin: 0; border: none;">Mês / Ano</h2>
-            <button class="btn-secondary mini-btn" id="btnCalNext">Próximo ►</button>
-          </div>
-
-          <div class="calendar-grid" id="calendarGrid"></div>
-        </div>
+  <!-- MODAL DE BACKUP JSON -->
+  <div id="modalBackup" class="modal-overlay">
+    <div class="modal-content">
+      <h3 style="margin-bottom: 15px; color: var(--text-heading);">Backup & Restauração JSON</h3>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">
+        Copie o texto de backup ou cole um arquivo JSON válido para restaurar os dados manualmente na nuvem.
+      </p>
+      <textarea id="jsonArea" style="width: 100%; height: 150px; background: #0d1117; color: var(--text-primary); border: 1px solid var(--panel-border); border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.8rem; margin-bottom: 15px;"></textarea>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn-secondary" onclick="fecharModalBackup()">Fechar</button>
+        <button class="btn-primary" onclick="importarJSON()">Restaurar Dados</button>
       </div>
     </div>
   </div>
 
   <script>
-    /* SISTEMA DE BANCO DE DADOS LOCAL */
-    const DB_KEY = 'igreja_missionaria_db_v2';
-    const THEME_KEY = 'igreja_missionaria_theme';
+    // Configurações do Firebase Realtime Database para o projeto app-imuit-fabf6
+    const firebaseConfig = {
+      apiKey: "AIzaSyCIeKq6dh_MRX7Fju1E9apbfroKDs8KfXk",
+      authDomain: "app-imuit-fabf6.firebaseapp.com",
+      databaseURL: "https://app-imuit-fabf6-default-rtdb.firebaseio.com",
+      projectId: "app-imuit-fabf6",
+      storageBucket: "app-imuit-fabf6.firebasestorage.app",
+      messagingSenderId: "881321029737",
+      appId: "1:881321029737:web:4feee85a1860945fc543d5"
+    };
 
-    let db = carregarDB();
+    // Inicialização do Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    function carregarDB() {
-      const sal = localStorage.getItem(DB_KEY);
-      if (sal) {
-        try { return JSON.parse(sal); } catch (e) {}
-      }
-      return {
-        membros: [],
-        listas: { 'Culto Principal': [] },
-        pastas: { 'Culto de Domingo': [] },
-        eventos: [],
-        excecoesEventos: []
-      };
-    }
+    let membros = [];
+    let pastas = [];
 
-    function salvarDB() {
-      localStorage.setItem(DB_KEY, JSON.stringify(db));
-    }
+    // RELÓGIO DIGITAL DENTRO DO HUD
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById('clock').innerText = now.toLocaleTimeString();
+    }, 1000);
 
-    /* MODO CLARO / ESCURO */
-    const btnThemeToggle = document.getElementById('btnThemeToggle');
-    function aplicarTema(t) {
-      if (t === 'light') {
-        document.body.classList.remove('theme-dark');
-        document.body.classList.add('theme-light');
-        document.getElementById('themeIcon').textContent = '🌙';
-        document.getElementById('themeLabel').textContent = 'Modo Escuro';
+    // SINCRONIZAÇÃO EM TEMPO REAL COM A NUVEM
+    db.ref('app_data').on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        membros = data.membros || [];
+        pastas = data.pastas || [];
       } else {
-        document.body.classList.remove('theme-light');
-        document.body.classList.add('theme-dark');
-        document.getElementById('themeIcon').textContent = '☀️';
-        document.getElementById('themeLabel').textContent = 'Modo Claro';
+        membros = [];
+        pastas = [];
       }
-      localStorage.setItem(THEME_KEY, t);
-    }
-    btnThemeToggle.addEventListener('click', () => {
-      const eEscuro = document.body.classList.contains('theme-dark');
-      aplicarTema(eEscuro ? 'light' : 'dark');
-    });
-    aplicarTema(localStorage.getItem(THEME_KEY) || 'dark');
 
-    /* TROCA DE ABAS */
-    function trocarAba(idAba) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      const badge = document.getElementById('statusBadge');
+      const text = document.getElementById('statusText');
+      
+      badge.className = "status-badge online";
+      text.innerText = "Nuvem Ativa";
+      badge.innerHTML = `<i data-lucide="wifi" style="width: 14px; height: 14px;"></i> Nuvem Ativa`;
+      lucide.createIcons();
 
-      event.target.classList.add('active');
-      document.getElementById(idAba).classList.add('active');
-
-      if (idAba === 'abaCalendario') renderCalendario();
-      if (idAba === 'abaPastas') renderPastas();
-    }
-
-    /* HELPER: NOME + PRIMEIRO SOBRENOME */
-    function formatarNomeExibicao(nomeCompleto) {
-      if (!nomeCompleto) return '';
-      const partes = nomeCompleto.trim().split(/\s+/);
-      if (partes.length === 1) return partes[0];
-      return `${partes[0]} ${partes[1]}`;
-    }
-
-    /* HELPER: CÁLCULO DE IDADE */
-    function calcularIdade(dataNascStr) {
-      if (!dataNascStr) return '';
-      const hoje = new Date();
-      const nasc = new Date(dataNascStr);
-      let idade = hoje.getFullYear() - nasc.getFullYear();
-      const m = hoje.getMonth() - nasc.getMonth();
-      if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) idade--;
-      return idade;
-    }
-
-    /* 1. FICHA DE MEMBROS */
-    const formMembro = document.getElementById('formMembro');
-    formMembro.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const nome = document.getElementById('membroNome').value.trim();
-      const nasc = document.getElementById('membroNasc').value;
-      const tel = document.getElementById('membroTel').value.trim();
-
-      const mins = [];
-      document.querySelectorAll('#containerMinisterios input:checked').forEach(c => mins.push(c.value));
-
-      db.membros.push({ id: 'm_' + Date.now(), nome, nasc, tel, ministerios: mins });
-      salvarDB();
-      formMembro.reset();
       renderMembros();
-      alert('Membro cadastrado com sucesso!');
+      renderPastas();
+      renderRelatorio();
+    }, (error) => {
+      const badge = document.getElementById('statusBadge');
+      badge.className = "status-badge offline";
+      badge.innerHTML = `<i data-lucide="wifi-off" style="width: 14px; height: 14px;"></i> Erro Conexão`;
+      lucide.createIcons();
     });
 
-    function renderMembros() {
-      const tbody = document.getElementById('tbodyMembros');
-      tbody.innerHTML = '';
-      db.membros.forEach((m, idx) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><strong>${m.nome}</strong></td>
-          <td>${calcularIdade(m.nasc)} anos</td>
-          <td>${m.ministerios.length > 0 ? m.ministerios.join(', ') : 'Nenhum'}</td>
-          <td><button class="btn-danger mini-btn" onclick="excluirMembro(${idx})">Excluir</button></td>
-        `;
-        tbody.appendChild(tr);
+    // FUNÇÃO DE GRAVAÇÃO
+    function salvarDados() {
+      db.ref('app_data').set({
+        membros: membros,
+        pastas: pastas,
+        ultimaAtualizacao: new Date().toISOString()
       });
     }
-    function excluirMembro(idx) {
-      if (confirm('Deseja excluir este membro?')) {
-        db.membros.splice(idx, 1);
-        salvarDB();
-        renderMembros();
+
+    // GESTÃO DE MEMBROS
+    function adicionarMembro() {
+      const nomeInput = document.getElementById('nomeMembro');
+      const cargoInput = document.getElementById('cargoMembro');
+
+      if (!nomeInput.value.trim()) return alert("Digite o nome do membro!");
+
+      membros.push({
+        id: Date.now(),
+        nome: nomeInput.value.trim(),
+        cargo: cargoInput.value.trim() || 'Membro'
+      });
+
+      nomeInput.value = '';
+      cargoInput.value = '';
+      salvarDados();
+    }
+
+    function removerMembro(id) {
+      if (confirm("Remover este membro do sistema?")) {
+        membros = membros.filter(m => m.id !== id);
+        salvarDados();
       }
     }
 
-    /* 2. GESTÃO DE LISTAS DE PRESENÇA */
-    const selectListaAtiva = document.getElementById('selectListaAtiva');
-    const tbodyLista = document.getElementById('tbodyLista');
+    function renderMembros(listaFiltrada = null) {
+      const tabela = document.getElementById('tabelaMembros');
+      const lista = listaFiltrada || membros;
 
-    function atualizarSelectsListas() {
-      selectListaAtiva.innerHTML = '';
-      Object.keys(db.listas).forEach(l => {
-        const opt = document.createElement('option');
-        opt.value = l;
-        opt.textContent = l;
-        selectListaAtiva.appendChild(opt);
-      });
-      renderLista();
-    }
-
-    document.getElementById('btnCriarLista').addEventListener('click', () => {
-      const nome = document.getElementById('inputNomeLista').value.trim();
-      if (!nome) return alert('Digite o nome da lista.');
-      if (db.listas[nome]) return alert('Lista já existe.');
-      db.listas[nome] = [];
-      salvarDB();
-      document.getElementById('inputNomeLista').value = '';
-      atualizarSelectsListas();
-      selectListaAtiva.value = nome;
-      renderLista();
-    });
-
-    document.getElementById('btnAddVisitante').addEventListener('click', () => {
-      const lNome = selectListaAtiva.value;
-      const vNome = document.getElementById('inputNomeVisitante').value.trim();
-      if (!lNome) return alert('Selecione ou crie uma lista.');
-      if (!vNome) return alert('Digite o nome do visitante.');
-
-      db.listas[lNome].push({ id: 'p_' + Date.now(), nome: vNome, status: 'visitante', tipo: 'visitante' });
-      salvarDB();
-      document.getElementById('inputNomeVisitante').value = '';
-      renderLista();
-    });
-
-    document.getElementById('btnImportarMembros').addEventListener('click', () => {
-      const lNome = selectListaAtiva.value;
-      if (!lNome) return alert('Selecione uma lista.');
-      let add = 0;
-      db.membros.forEach(m => {
-        const jaExiste = db.listas[lNome].some(p => p.nome === m.nome);
-        if (!jaExiste) {
-          db.listas[lNome].push({ id: 'p_' + Date.now() + Math.random(), nome: m.nome, status: 'pendente', tipo: 'membro' });
-          add++;
-        }
-      });
-      salvarDB();
-      renderLista();
-      alert(`${add} membros importados para a lista.`);
-    });
-
-    function renderLista() {
-      const lNome = selectListaAtiva.value;
-      if (!lNome || !db.listas[lNome]) {
-        tbodyLista.innerHTML = '<tr><td colspan="3">Nenhuma lista selecionada.</td></tr>';
+      if (lista.length === 0) {
+        tabela.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Nenhum membro encontrado.</td></tr>';
         return;
       }
 
-      let pessoas = [...db.listas[lNome]];
-      const ord = document.getElementById('selectOrdenacao').value;
-
-      if (ord === 'pendente') {
-        pessoas.sort((a, b) => (a.status === 'pendente' ? -1 : 1));
-      } else if (ord === 'status') {
-        const o = { presente: 1, visitante: 2, faltou: 3, pendente: 0 };
-        pessoas.sort((a, b) => o[a.status] - o[b.status]);
-      } else if (ord === 'nome') {
-        pessoas.sort((a, b) => a.nome.localeCompare(b.nome));
-      }
-
-      tbodyLista.innerHTML = '';
-      let cTot = pessoas.length, cPres = 0, cFalt = 0, cVis = 0;
-
-      pessoas.forEach(p => {
-        if (p.status === 'presente') cPres++;
-        if (p.status === 'faltou') cFalt++;
-        if (p.status === 'visitante') cVis++;
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><strong>${formatarNomeExibicao(p.nome)}</strong> <small style="color:var(--muted);">(${p.nome})</small></td>
-          <td><span class="status-tag status-${p.status}">${p.status.toUpperCase()}</span></td>
-          <td class="actions-cell">
-            <button class="btn-success mini-btn" onclick="alterarStatusPessoa('${lNome}', '${p.id}', 'presente')">Presente</button>
-            <button class="btn-danger mini-btn" onclick="alterarStatusPessoa('${lNome}', '${p.id}', 'faltou')">Falta</button>
-            <button class="btn-purple mini-btn" onclick="alterarStatusPessoa('${lNome}', '${p.id}', 'visitante')">Visitante</button>
-            <button class="btn-secondary mini-btn" onclick="removerPessoaLista('${lNome}', '${p.id}')">✕</button>
+      tabela.innerHTML = lista.map(m => `
+        <tr>
+          <td><strong>${m.nome}</strong></td>
+          <td><span class="badge badge-warning">${m.cargo}</span></td>
+          <td>
+            <button class="btn-danger" style="padding: 4px 8px; font-size: 0.8rem;" onclick="removerMembro(${m.id})">
+              <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i>
+            </button>
           </td>
-        `;
-        tbodyLista.appendChild(tr);
-      });
-
-      document.getElementById('cntTotal').textContent = cTot;
-      document.getElementById('cntPresentes').textContent = cPres;
-      document.getElementById('cntFaltas').textContent = cFalt;
-      document.getElementById('cntVisitantes').textContent = cVis;
+        </tr>
+      `).join('');
+      lucide.createIcons();
     }
 
-    window.alterarStatusPessoa = function(lNome, pId, novoStatus) {
-      const idx = db.listas[lNome].findIndex(p => p.id === pId);
-      if (idx !== -1) {
-        db.listas[lNome][idx].status = novoStatus;
-        salvarDB();
-        renderLista();
+    function filtrarMembros() {
+      const busca = document.getElementById('buscaMembro').value.toLowerCase();
+      const filtrados = membros.filter(m => m.nome.toLowerCase().includes(busca) || m.cargo.toLowerCase().includes(busca));
+      renderMembros(filtrados);
+    }
+
+    // GESTÃO DE PASTAS & PRESENÇAS
+    function criarPasta() {
+      const nomeInput = document.getElementById('nomePasta');
+      const dataInput = document.getElementById('dataPasta');
+
+      if (!nomeInput.value.trim()) return alert("Informe o nome do evento/pasta!");
+
+      pastas.push({
+        id: Date.now(),
+        nome: nomeInput.value.trim(),
+        data: dataInput.value || new Date().toISOString().split('T')[0],
+        presencas: {}
+      });
+
+      nomeInput.value = '';
+      dataInput.value = '';
+      salvarDados();
+    }
+
+    function alternarPresenca(pastaId, membroId) {
+      const pasta = pastas.find(p => p.id === pastaId);
+      if (pasta) {
+        if (!pasta.presencas) pasta.presencas = {};
+        pasta.presencas[membroId] = !pasta.presencas[membroId];
+        salvarDados();
       }
-    };
+    }
 
-    window.removerPessoaLista = function(lNome, pId) {
-      db.listas[lNome] = db.listas[lNome].filter(p => p.id !== pId);
-      salvarDB();
-      renderLista();
-    };
-
-    document.getElementById('btnExcluirLista').addEventListener('click', () => {
-      const lNome = selectListaAtiva.value;
-      if (lNome && confirm(`Excluir a lista "${lNome}"?`)) {
-        delete db.listas[lNome];
-        salvarDB();
-        atualizarSelectsListas();
+    function removerPasta(id) {
+      if (confirm("Apagar esta pasta de chamada?")) {
+        pastas = pastas.filter(p => p.id !== id);
+        salvarDados();
       }
-    });
-
-    document.getElementById('btnImprimir').addEventListener('click', () => window.print());
-    selectListaAtiva.addEventListener('change', renderLista);
-    document.getElementById('selectOrdenacao').addEventListener('change', renderLista);
-
-    /* 3. GESTÃO DE PASTAS E SALVAMENTO DE LISTAS */
-    const selectPastaParaSalvar = document.getElementById('selectPastaParaSalvar');
-    const selectPastaVisualizar = document.getElementById('selectPastaVisualizar');
+    }
 
     function renderPastas() {
-      const container = document.getElementById('listaPastasExistentes');
-      selectPastaParaSalvar.innerHTML = '<option value="">Selecione uma pasta...</option>';
-      selectPastaVisualizar.innerHTML = '<option value="">Selecione para visualizar...</option>';
-
-      container.innerHTML = '';
-      Object.keys(db.pastas).forEach(p => {
-        const opt1 = document.createElement('option'); opt1.value = p; opt1.textContent = p;
-        selectPastaParaSalvar.appendChild(opt1);
-        const opt2 = document.createElement('option'); opt2.value = p; opt2.textContent = p;
-        selectPastaVisualizar.appendChild(opt2);
-
-        const div = document.createElement('div');
-        div.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:10px; border:1px solid var(--border); border-radius:10px; margin-bottom:8px;';
-        div.innerHTML = `
-          <span>📁 <strong>${p}</strong> (${db.pastas[p].length} listas)</span>
-          <button class="btn-danger mini-btn" onclick="excluirPasta('${p}')">Excluir Pasta</button>
-        `;
-        container.appendChild(div);
-      });
-      renderConteudoPasta();
-    }
-
-    document.getElementById('btnCriarPasta').addEventListener('click', () => {
-      const pNome = document.getElementById('inputNomePasta').value.trim();
-      if (!pNome) return alert('Digite o nome da pasta.');
-      if (db.pastas[pNome]) return alert('Esta pasta já existe.');
-
-      db.pastas[pNome] = [];
-      salvarDB();
-      document.getElementById('inputNomePasta').value = '';
-      renderPastas();
-    });
-
-    window.excluirPasta = function(pNome) {
-      if (confirm(`Deseja excluir a pasta "${pNome}"? As listas salvas nela serão desvinculadas.`)) {
-        delete db.pastas[pNome];
-        salvarDB();
-        renderPastas();
-      }
-    };
-
-    document.getElementById('btnSalvarNaPasta').addEventListener('click', () => {
-      const lNome = selectListaAtiva.value;
-      const pNome = selectPastaParaSalvar.value;
-
-      if (!lNome) return alert('Selecione uma lista.');
-      if (!pNome) return alert('Selecione uma pasta destino.');
-
-      db.pastas[pNome].push({
-        nomeLista: lNome,
-        dataSalvo: new Date().toLocaleDateString('pt-BR'),
-        dados: [...db.listas[lNome]]
-      });
-
-      salvarDB();
-      alert(`Lista "${lNome}" foi arquivada com sucesso na pasta "${pNome}"!`);
-      renderPastas();
-    });
-
-    function renderConteudoPasta() {
-      const pNome = selectPastaVisualizar.value;
-      const box = document.getElementById('conteudoPastaVisualizada');
-
-      if (!pNome || !db.pastas[pNome]) {
-        box.innerHTML = '<p style="color: var(--muted);">Selecione uma pasta para visualizar.</p>';
+      const lista = document.getElementById('listaPastas');
+      if (pastas.length === 0) {
+        lista.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 20px;">Nenhuma pasta cadastrada.</p>';
         return;
       }
 
-      const listasSalvas = db.pastas[pNome];
-      if (listasSalvas.length === 0) {
-        box.innerHTML = '<p style="color: var(--muted);">Nenhuma lista arquivada nesta pasta.</p>';
-        return;
-      }
+      lista.innerHTML = pastas.map(p => {
+        const itensMembros = membros.map(m => {
+          const presente = p.presencas && p.presencas[m.id];
+          return `
+            <div class="member-item">
+              <span>${m.nome} <small style="color: var(--text-muted);">(${m.cargo})</small></span>
+              <button class="${presente ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 10px; font-size: 0.8rem;" onclick="alternarPresenca(${p.id}, ${m.id})">
+                ${presente ? '<i data-lucide="check" style="width: 12px; height: 12px;"></i> Presente' : '<i data-lucide="x" style="width: 12px; height: 12px;"></i> Ausente'}
+              </button>
+            </div>
+          `;
+        }).join('');
 
-      box.innerHTML = '';
-      listasSalvas.forEach((item) => {
-        const div = document.createElement('div');
-        div.style.cssText = 'border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:12px;';
-        
-        let cP = 0, cF = 0, cV = 0;
-        item.dados.forEach(d => {
-          if (d.status === 'presente') cP++;
-          if (d.status === 'faltou') cF++;
-          if (d.status === 'visitante') cV++;
-        });
-
-        div.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <strong>${item.nomeLista}</strong>
-            <small style="color:var(--muted);">${item.dataSalvo}</small>
+        return `
+          <div class="folder-card">
+            <div class="folder-title-bar">
+              <strong><i data-lucide="folder"></i> ${p.nome} <small style="color: var(--text-muted);">(${p.data})</small></strong>
+              <button class="btn-danger" style="padding: 2px 6px; font-size: 0.75rem;" onclick="removerPasta(${p.id})">Excluir</button>
+            </div>
+            ${membros.length > 0 ? itensMembros : '<p style="font-size: 0.85em; color: var(--text-muted);">Cadastre membros para realizar a chamada.</p>'}
           </div>
-          <div style="font-size:0.85rem; margin-top:6px;">Presentes: ${cP} | Faltas: ${cF} | Visitantes: ${cV}</div>
         `;
-        box.appendChild(div);
-      });
+      }).join('');
+      lucide.createIcons();
     }
-    selectPastaVisualizar.addEventListener('change', renderConteudoPasta);
 
-    /* 4. CALENDÁRIO COM RECORRÊNCIA E ANIVERSÁRIOS */
-    let calDataAtual = new Date();
-
-    const formEvento = document.getElementById('formEvento');
-    formEvento.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const titulo = document.getElementById('evtTitulo').value.trim();
-      const tipo = document.getElementById('evtTipoRecorrencia').value;
-      const data = document.getElementById('evtData').value;
-      const hora = document.getElementById('evtHora').value;
-
-      db.eventos.push({ id: 'evt_' + Date.now(), titulo, tipo, data, hora });
-      salvarDB();
-      formEvento.reset();
-      renderCalendario();
-      alert('Evento agendado com sucesso!');
-    });
-
-    document.getElementById('btnCalPrev').addEventListener('click', () => {
-      calDataAtual.setMonth(calDataAtual.getMonth() - 1);
-      renderCalendario();
-    });
-    document.getElementById('btnCalNext').addEventListener('click', () => {
-      calDataAtual.setMonth(calDataAtual.getMonth() + 1);
-      renderCalendario();
-    });
-
-    function renderCalendario() {
-      const grid = document.getElementById('calendarGrid');
-      const tituloMes = document.getElementById('calTituloMes');
-      grid.innerHTML = '';
-
-      const ano = calDataAtual.getFullYear();
-      const mes = calDataAtual.getMonth();
-
-      const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-      tituloMes.textContent = `${mesesNomes[mes]} de ${ano}`;
-
-      ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].forEach(d => {
-        const dh = document.createElement('div');
-        dh.className = 'cal-day-head';
-        dh.textContent = d;
-        grid.appendChild(dh);
-      });
-
-      const primeiroDiaSemana = new Date(ano, mes, 1).getDay();
-      const totalDiasMes = new Date(ano, mes + 1, 0).getDate();
-
-      for (let i = 0; i < primeiroDiaSemana; i++) {
-        const empty = document.createElement('div');
-        empty.className = 'cal-cell';
-        empty.style.opacity = '0.3';
-        grid.appendChild(empty);
+    // RELATÓRIOS E EXPORTAÇÃO
+    function renderRelatorio() {
+      const tabela = document.getElementById('tabelaRelatorio');
+      if (membros.length === 0) {
+        tabela.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Sem dados.</td></tr>';
+        return;
       }
 
-      for (let dia = 1; dia <= totalDiasMes; dia++) {
-        const cell = document.createElement('div');
-        cell.className = 'cal-cell';
+      const totalPastas = pastas.length;
 
-        const numDiv = document.createElement('div');
-        numDiv.className = 'cal-day-number';
-        numDiv.textContent = dia;
-        cell.appendChild(numDiv);
-
-        const dataIsoStr = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
-        const dataObjCurrent = new Date(ano, mes, dia);
-        const diaSemanaCurrent = dataObjCurrent.getDay();
-
-        db.membros.forEach(m => {
-          if (m.nasc) {
-            const [, mNasc, dNasc] = m.nasc.split('-');
-            if (parseInt(mNasc, 10) === mes + 1 && parseInt(dNasc, 10) === dia) {
-              const tag = document.createElement('span');
-              tag.className = 'cal-event-tag cal-event-aniv';
-              tag.textContent = `🎂 Niver: ${formatarNomeExibicao(m.nome)}`;
-              cell.appendChild(tag);
-            }
-          }
+      tabela.innerHTML = membros.map(m => {
+        let presencasCount = 0;
+        pastas.forEach(p => {
+          if (p.presencas && p.presencas[m.id]) presencasCount++;
         });
 
-        db.eventos.forEach(evt => {
-          const evtDataObj = new Date(evt.data + 'T00:00:00');
-          const evtDiaSemana = evtDataObj.getDay();
+        const pct = totalPastas > 0 ? Math.round((presencasCount / totalPastas) * 100) : 0;
+        const badgeClass = pct >= 75 ? 'badge-success' : (pct >= 50 ? 'badge-warning' : 'badge-danger');
 
-          let exibe = false;
-          if (evt.tipo === 'unico' && evt.data === dataIsoStr) {
-            exibe = true;
-          } else if (evt.tipo === 'semanal' && diaSemanaCurrent === evtDiaSemana && dataObjCurrent >= evtDataObj) {
-            exibe = true;
-          }
+        return `
+          <tr>
+            <td><strong>${m.nome}</strong></td>
+            <td>${m.cargo}</td>
+            <td>${presencasCount} / ${totalPastas}</td>
+            <td><span class="badge ${badgeClass}">${pct}%</span></td>
+          </tr>
+        `;
+      }).join('');
+    }
 
-          const eExcecao = db.excecoesEventos.some(ex => ex.titulo === evt.titulo && ex.dataStr === dataIsoStr);
-          if (exibe && !eExcecao) {
-            const tag = document.createElement('span');
-            tag.className = 'cal-event-tag';
-            tag.textContent = `${evt.hora} ${evt.titulo}`;
-            tag.onclick = () => {
-              if (confirm(`Deseja cancelar a ocorrência do evento "${evt.titulo}" no dia ${dia}/${mes+1}/${ano}?`)) {
-                db.excecoesEventos.push({ titulo: evt.titulo, dataStr: dataIsoStr });
-                salvarDB();
-                renderCalendario();
-              }
-            };
-            cell.appendChild(tag);
-          }
+    function exportarCSV() {
+      let csv = 'Nome,Cargo,Presencas,TotalPastas,Porcentagem\n';
+      const totalPastas = pastas.length;
+
+      membros.forEach(m => {
+        let presencasCount = 0;
+        pastas.forEach(p => {
+          if (p.presencas && p.presencas[m.id]) presencasCount++;
         });
+        const pct = totalPastas > 0 ? Math.round((presencasCount / totalPastas) * 100) : 0;
+        csv += `"${m.nome}","${m.cargo}",${presencasCount},${totalPastas},${pct}%\n`;
+      });
 
-        grid.appendChild(cell);
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Relatorio_Presenca_Imuit_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+    }
+
+    // MODAL DE BACKUP JSON
+    function abrirModalBackup() {
+      document.getElementById('jsonArea').value = JSON.stringify({ membros, pastas }, null, 2);
+      document.getElementById('modalBackup').style.display = 'flex';
+    }
+
+    function fecharModalBackup() {
+      document.getElementById('modalBackup').style.display = 'none';
+    }
+
+    function importarJSON() {
+      try {
+        const data = JSON.parse(document.getElementById('jsonArea').value);
+        if (data.membros && data.pastas) {
+          membros = data.membros;
+          pastas = data.pastas;
+          salvarDados();
+          fecharModalBackup();
+          alert("Dados restaurados e sincronizados com a nuvem!");
+        } else {
+          alert("Formato de JSON inválido!");
+        }
+      } catch (e) {
+        alert("Erro ao ler o JSON!");
       }
     }
 
-    /* FUNDO DE PARTÍCULAS INTERATIVO */
-    const canvas = document.getElementById('bgCanvas');
-    const ctx = canvas.getContext('2d');
-    let particles = [];
-    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    class Particle {
-      constructor() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 2 + 1;
-      }
-      draw() {
-        ctx.fillStyle = 'rgba(167, 139, 250, 0.2)';
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-    for (let i = 0; i < 50; i++) particles.push(new Particle());
-    function anim() {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      particles.forEach(p => p.draw());
-      requestAnimationFrame(anim);
-    }
-    anim();
-
-    /* INICIALIZAÇÃO */
-    renderMembros();
-    atualizarSelectsListas();
-    renderPastas();
+    // Inicializar ícones do Lucide
+    lucide.createIcons();
   </script>
 </body>
 </html>
