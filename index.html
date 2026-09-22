@@ -9,9 +9,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-  <!-- html2pdf.js para baixar relatórios em PDF diretamente -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
@@ -297,7 +294,6 @@
     .member-item-row.pendente { background: rgba(210, 153, 34, 0.15); border-left: 3px solid #d29922; }
     .member-item-row.concluido { background: rgba(63, 185, 80, 0.05); }
 
-    /* CALENDÁRIO ESTILO GOOGLE */
     .calendar-header-nav {
       display: flex;
       justify-content: space-between;
@@ -346,16 +342,11 @@
       text-overflow: ellipsis;
     }
     .cal-evt-badge.niver { background: rgba(210, 153, 34, 0.2); color: var(--accent-yellow); }
-
-    /* MODELO OCULTO PARA EXPORTAÇÃO PDF */
-    #pdfHiddenRender {
-      display: none;
-    }
   </style>
 </head>
 <body>
 
-  <!-- SETAS DESK -->
+  <!-- SETAS DESKTOP -->
   <button class="nav-arrow left" onclick="navegarProximaJanela(-1)"><i data-lucide="chevron-left"></i></button>
   <button class="nav-arrow right" onclick="navegarProximaJanela(1)"><i data-lucide="chevron-right"></i></button>
 
@@ -379,7 +370,7 @@
       </div>
     </header>
 
-    <!-- BARRA NAVEGAÇÃO ABAS -->
+    <!-- NAVEGAÇÃO -->
     <div class="tabs-nav">
       <button class="tab-btn active" onclick="irParaJanela(0)"><i data-lucide="clipboard-check"></i> 1. Chamada e Pastas</button>
       <button class="tab-btn" onclick="irParaJanela(1)"><i data-lucide="calendar"></i> 2. Calendário</button>
@@ -437,7 +428,9 @@
               </div>
 
               <div id="boxMembrosChamada" style="max-height: 380px; overflow-y: auto; padding-right: 5px;"></div>
-              <button onclick="salvarListaNaPasta()" style="width:100%; margin-top:15px; padding: 12px;"><i data-lucide="save"></i> Salvar Lista na Pasta</button>
+              
+              <!-- BOTÃO DE SALVAR CORRIGIDO -->
+              <button onclick="salvarListaNaPasta()" style="width:100%; margin-top:15px; padding: 12px; font-size:1rem;"><i data-lucide="save"></i> Salvar Lista na Pasta</button>
             </div>
           </div>
 
@@ -447,11 +440,11 @@
           </div>
         </div>
 
-        <!-- ==================== JANELA 2: CALENDÁRIO COMPACTO ==================== -->
+        <!-- ==================== JANELA 2: CALENDÁRIO ==================== -->
         <div class="tab-content">
           <div class="grid-2">
             <div class="card">
-              <div class="card-title"><span><i data-lucide="calendar-plus"></i> Agendar Evento no Calendário</span></div>
+              <div class="card-title"><span><i data-lucide="calendar-plus"></i> Agendar Evento</span></div>
               <div class="form-group">
                 <label>Título do Evento:</label>
                 <input type="text" id="evtTitulo" placeholder="Ex: Culto de Celebração">
@@ -470,12 +463,12 @@
                 <label>Recorrência (Repetição):</label>
                 <select id="evtRecorrencia">
                   <option value="UNICO">Evento Único (Sem repetição)</option>
-                  <option value="SEMANAL">Repetir Toda Semana (Ex: Todo Domingo)</option>
+                  <option value="SEMANAL">Repetir Toda Semana</option>
                   <option value="MENSAL">Repetir Todo Mês</option>
                 </select>
               </div>
               <div class="form-group">
-                <label>Quantidade de repetições (Semanas/Meses):</label>
+                <label>Quantidade de repetições:</label>
                 <input type="number" id="evtQtd" value="4" min="1" max="52">
               </div>
               <button onclick="salvarEvento()"><i data-lucide="calendar-check"></i> Agendar Evento(s)</button>
@@ -487,7 +480,7 @@
             </div>
           </div>
 
-          <!-- MÊS COMPACTO GOOGLE CALENDAR -->
+          <!-- MÊS COMPACTO -->
           <div class="card">
             <div class="calendar-header-nav">
               <button class="btn-secondary" onclick="mudarMesCalendario(-1)"><i data-lucide="chevron-left"></i> Mês Anterior</button>
@@ -567,8 +560,7 @@
             <div style="line-height: 1.6; color: var(--text-main);">
               <p><strong>📱 Navegação por Gestos (Celular):</strong> Deslize o dedo para a esquerda ou para a direita para mudar de tela!</p>
               <p style="margin-top:10px;"><strong>💻 Navegação por Setas (Notebook):</strong> Use as setas flutuantes na lateral da tela para alternar de janela com um clique.</p>
-              <p style="margin-top:10px;"><strong>1. Chamada e Pastas:</strong> Crie uma pasta e salve cada lista de presença dentro dela. Você pode salvar a lista e depois clicar em <b>📄 Guardar / Baixar PDF</b> para exportar o relatório com gráficos.</p>
-              <p style="margin-top:10px;"><strong>2. Aniversários e Idade:</strong> Cadastre a data de nascimento dos membros para que a idade seja calculada automaticamente e o aniversário entre no Calendário Anual.</p>
+              <p style="margin-top:10px;"><strong>1. Chamada e Pastas:</strong> Crie uma pasta e salve cada lista de presença dentro dela. Clique no botão <b>📄 Gerar / Baixar PDF</b> para abrir o relatório pronto para salvar ou imprimir!</p>
             </div>
           </div>
         </div>
@@ -576,9 +568,6 @@
       </div>
     </div>
   </div>
-
-  <!-- CONTAINER PARA GERAR PDF -->
-  <div id="pdfHiddenRender"></div>
 
   <script>
     const firebaseConfig = {
@@ -603,10 +592,10 @@
     let janelaAtual = 0;
     let temaAtual = "dark";
 
-    let dataCalendarioView = new Date(); // Controle de navegação do calendário mensal
+    let dataCalendarioView = new Date();
 
-    // SINCRONIZAÇÃO NUVEM
-    db.ref('app_imuit_v5').on('value', (snapshot) => {
+    // OUVER NUVEM
+    db.ref('app_imuit_v6').on('value', (snapshot) => {
       const data = snapshot.val();
       if (data) {
         membros = data.membros || [];
@@ -623,13 +612,13 @@
     });
 
     function salvarDados() {
-      db.ref('app_imuit_v5').set({
+      db.ref('app_imuit_v6').set({
         membros, categoriasPastas, eventos, ministerios,
         ultimaAtualizacao: new Date().toISOString()
       });
     }
 
-    // NAVEGAÇÃO ENTRE JANELAS
+    // SLIDER
     function irParaJanela(index) {
       if (index < 0) index = 0;
       if (index > 3) index = 3;
@@ -647,7 +636,6 @@
       irParaJanela(janelaAtual + direcao);
     }
 
-    // SWIPE NO TOUCH
     let touchStartX = 0;
     let touchEndX = 0;
     const touchArea = document.getElementById('touchArea');
@@ -803,25 +791,31 @@
       }).join('');
     }
 
-    // CORREÇÃO DO SALVAMENTO DA LISTA
+    // FUNÇÃO DE SALVAR CORRIGIDA E GARANTIDA
     function salvarListaNaPasta() {
-      let pastaId = parseInt(document.getElementById('selPastaDestino').value);
-      const titulo = document.getElementById('listaTitulo').value.trim();
-      const data = document.getElementById('listaData').value;
+      const tituloInput = document.getElementById('listaTitulo').value.trim();
+      const dataInput = document.getElementById('listaData').value;
 
-      if (!titulo || !data) return alert("Informe o título e a data da lista!");
-
-      // Se não existir nenhuma pasta, cria uma automaticamente
-      if (categoriasPastas.length === 0) {
-        const novaP = { id: Date.now(), nome: "Listas de Chamada Geral", listas: [] };
-        categoriasPastas.push(novaP);
-        pastaId = novaP.id;
-      } else if (!pastaId) {
-        pastaId = categoriasPastas[0].id;
+      if (!tituloInput) {
+        return alert("Por favor, digite o nome do evento/lista no campo 'Nome do Evento / Lista'!");
+      }
+      if (!dataInput) {
+        return alert("Por favor, selecione uma data válida!");
       }
 
-      const pasta = categoriasPastas.find(p => p.id === pastaId);
-      if (!pasta) return alert("Selecione uma pasta válida!");
+      // Se não houver pastas no sistema, cria uma pasta padrão imediatamente
+      if (categoriasPastas.length === 0) {
+        const pastaPadrao = { id: Date.now(), nome: "Cultos e Eventos Geral", listas: [] };
+        categoriasPastas.push(pastaPadrao);
+      }
+
+      const selEl = document.getElementById('selPastaDestino');
+      let pastaAlvoId = selEl ? parseInt(selEl.value) : null;
+
+      let pastaAlvo = categoriasPastas.find(p => p.id === pastaAlvoId);
+      if (!pastaAlvo) {
+        pastaAlvo = categoriasPastas[0];
+      }
 
       const registros = membros.map(m => ({
         membroId: m.id,
@@ -829,14 +823,99 @@
         status: chamadasEstadoLocal[m.id] || "PENDENTE"
       }));
 
-      pasta.listas.push({ id: Date.now(), titulo, data, registros });
+      pastaAlvo.listas.push({
+        id: Date.now(),
+        titulo: tituloInput,
+        data: dataInput,
+        registros: registros
+      });
+
       chamadasEstadoLocal = {};
       document.getElementById('listaTitulo').value = '';
       salvarDados();
-      alert("Lista salva com sucesso na pasta!");
+      alert(`Lista "${tituloInput}" salva com sucesso dentro da pasta "${pastaAlvo.nome}"!`);
     }
 
-    // CALENDÁRIO COMPACTO ESTILO GOOGLE
+    // NOVO GERADOR/EMISSOR DE PDF (RESISTENTE E COMPATÍVEL COM TODOS DISPOSITIVOS)
+    function baixarPDFLista(pastaId, listaId) {
+      const pasta = categoriasPastas.find(p => p.id === pastaId);
+      if (!pasta) return;
+      const lista = pasta.listas.find(l => l.id === listaId);
+      if (!lista) return;
+
+      const total = lista.registros.length;
+      const presentes = lista.registros.filter(r => r.status === 'PRESENTE').length;
+      const visitantes = lista.registros.filter(r => r.status === 'VISITANTE').length;
+      const justificados = lista.registros.filter(r => r.status === 'JUSTIFICADO').length;
+      const faltas = lista.registros.filter(r => r.status === 'FALTA' || r.status === 'PENDENTE').length;
+
+      const pctPresente = total > 0 ? Math.round((presentes / total) * 100) : 0;
+      const pctFalta = total > 0 ? Math.round((faltas / total) * 100) : 0;
+
+      const windowPrint = window.open('', '', 'width=800,height=600');
+      windowPrint.document.write(`
+        <html>
+          <head>
+            <title>Relatorio_${pasta.nome}_${lista.titulo}</title>
+            <style>
+              body { font-family: Arial, sans-serif; color: #000; padding: 20px; }
+              .pdf-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+              .pdf-box { background: #f4f4f4; border: 1px solid #ccc; padding: 12px; border-radius: 6px; margin-bottom: 20px; }
+              .pdf-bar { display: flex; height: 22px; border-radius: 4px; overflow: hidden; margin: 8px 0; border: 1px solid #aaa; }
+              table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+              th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+              th { background: #eee; }
+            </style>
+          </head>
+          <body>
+            <div class="pdf-header">
+              <h2 style="margin:0;">APP IMUIT - RELATÓRIO DE PRESENÇA</h2>
+              <h4 style="margin:5px 0 0 0; color:#555;">Pasta: ${pasta.nome} | Lista: ${lista.titulo} (${lista.data})</h4>
+            </div>
+
+            <div class="pdf-box">
+              <h4 style="margin:0 0 6px 0;">Frequência Geral (${total} Membros)</h4>
+              <div class="pdf-bar">
+                <div style="width: ${pctPresente}%; background: #238636; color: #fff; text-align: center; font-size: 11px; line-height: 22px;">${pctPresente}% Pres.</div>
+                <div style="width: ${pctFalta}%; background: #da3633; color: #fff; text-align: center; font-size: 11px; line-height: 22px;">${pctFalta}% Aus.</div>
+              </div>
+              <p style="font-size: 11px; margin: 0; display: flex; justify-content: space-between;">
+                <span><b>✓ Presentes:</b> ${presentes}</span>
+                <span><b>👤 Visitantes:</b> ${visitantes}</span>
+                <span><b>🟡 Justificados:</b> ${justificados}</span>
+                <span><b>✗ Faltas:</b> ${faltas}</span>
+              </p>
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Membro</th>
+                  <th style="width: 120px; text-align: center;">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${lista.registros.map(r => `
+                  <tr>
+                    <td>${r.nome}</td>
+                    <td style="text-align: center; font-weight: bold;">${r.status}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </body>
+        </html>
+      `);
+
+      windowPrint.document.close();
+      windowPrint.focus();
+      setTimeout(() => {
+        windowPrint.print();
+        windowPrint.close();
+      }, 500);
+    }
+
+    // CALENDÁRIO
     function mudarMesCalendario(delta) {
       dataCalendarioView.setMonth(dataCalendarioView.getMonth() + delta);
       renderCalendarioMensal();
@@ -854,25 +933,19 @@
 
       const primeiroDiaSemana = new Date(ano, mes, 1).getDay();
       const totalDiasMes = new Date(ano, mes + 1, 0).getDate();
-
       const hoje = new Date();
 
       let html = '';
 
-      // Preenche dias vazios do mês anterior
       for (let i = 0; i < primeiroDiaSemana; i++) {
         html += `<div class="cal-day-cell other-month"></div>`;
       }
 
-      // Preenche dias do mês atual
       for (let dia = 1; dia <= totalDiasMes; dia++) {
         const dataFormatada = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
         const ehHoje = hoje.getFullYear() === ano && hoje.getMonth() === mes && hoje.getDate() === dia;
 
-        // Busca eventos do dia
         const evtsDia = eventos.filter(e => e.data === dataFormatada);
-        
-        // Busca Aniversários do dia (independente do ano original)
         const niversDia = membros.filter(m => {
           if (!m.nascimento) return false;
           const [nAno, nMes, nDia] = m.nascimento.split('-');
@@ -922,77 +995,7 @@
       }
     }
 
-    // EXPORTAÇÃO E DOWNLOAD PDF
-    function baixarPDFLista(pastaId, listaId) {
-      const pasta = categoriasPastas.find(p => p.id === pastaId);
-      if (!pasta) return;
-      const lista = pasta.listas.find(l => l.id === listaId);
-      if (!lista) return;
-
-      const total = lista.registros.length;
-      const presentes = lista.registros.filter(r => r.status === 'PRESENTE').length;
-      const visitantes = lista.registros.filter(r => r.status === 'VISITANTE').length;
-      const justificados = lista.registros.filter(r => r.status === 'JUSTIFICADO').length;
-      const faltas = lista.registros.filter(r => r.status === 'FALTA' || r.status === 'PENDENTE').length;
-
-      const pctPresente = total > 0 ? Math.round((presentes / total) * 100) : 0;
-      const pctFalta = total > 0 ? Math.round((faltas / total) * 100) : 0;
-
-      const element = document.createElement('div');
-      element.style.padding = "20px";
-      element.style.fontFamily = "Arial, sans-serif";
-      element.style.color = "#000";
-
-      element.innerHTML = `
-        <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
-          <h1 style="margin: 0; font-size: 20px; color: #000;">APP IMUIT - RELATÓRIO DE PRESENÇA</h1>
-          <h3 style="margin: 5px 0 0 0; color: #444;">Pasta: ${pasta.nome} | Lista: ${lista.titulo} (${lista.data})</h3>
-        </div>
-
-        <div style="background: #f4f4f4; border: 1px solid #ddd; padding: 12px; border-radius: 6px; margin-bottom: 20px;">
-          <h4 style="margin:0 0 8px 0;">Frequência Geral (${total} Registrados)</h4>
-          <div style="display: flex; height: 20px; border-radius: 4px; overflow: hidden; margin: 8px 0; border: 1px solid #aaa;">
-            <div style="width: ${pctPresente}%; background: #238636; color: #fff; text-align: center; font-size: 10px; line-height: 20px;">${pctPresente}% Pres.</div>
-            <div style="width: ${pctFalta}%; background: #da3633; color: #fff; text-align: center; font-size: 10px; line-height: 20px;">${pctFalta}% Aus.</div>
-          </div>
-          <p style="font-size: 11px; margin: 0; display: flex; justify-content: space-between;">
-            <span><b>✓ Presentes:</b> ${presentes}</span>
-            <span><b>👤 Visitantes:</b> ${visitantes}</span>
-            <span><b>🟡 Justificados:</b> ${justificados}</span>
-            <span><b>✗ Faltas:</b> ${faltas}</span>
-          </p>
-        </div>
-
-        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-          <thead>
-            <tr style="background: #eee;">
-              <th style="border: 1px solid #ccc; padding: 6px; text-align: left;">Membro</th>
-              <th style="border: 1px solid #ccc; padding: 6px; text-align: center;">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${lista.registros.map(r => `
-              <tr>
-                <td style="border: 1px solid #ccc; padding: 6px;">${r.nome}</td>
-                <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-weight: bold;">${r.status}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `;
-
-      const opt = {
-        margin:       10,
-        filename:     `Relatorio_${pasta.nome}_${lista.titulo}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-
-      html2pdf().set(opt).from(element).save();
-    }
-
-    // CADASTRO DE MEMBRO
+    // CADASTRO
     function salvarMembro() {
       const nome = document.getElementById('memNome').value.trim();
       const apelido = document.getElementById('memApelido').value.trim();
@@ -1022,7 +1025,7 @@
 
     // RENDERIZADOR
     function renderTudo() {
-      document.getElementById('listaCategoriasPastas').innerHTML = categoriasPastas.length === 0 ? '<p style="color:var(--text-muted);">Nenhuma pasta.</p>' :
+      document.getElementById('listaCategoriasPastas').innerHTML = categoriasPastas.length === 0 ? '<p style="color:var(--text-muted);">Nenhuma pasta criada.</p>' :
         categoriasPastas.map(p => `
           <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border-color);">
             <span>📁 <strong>${p.nome}</strong> (${p.listas ? p.listas.length : 0} listas)</span>
@@ -1049,7 +1052,7 @@
 
       document.getElementById('selFiltroMinChamada').innerHTML = '<option value="TODOS">Todos os Membros</option>' + ministerios.map(m => `<option value="${m}">${m}</option>`).join('');
 
-      document.getElementById('arvorePastasEListas').innerHTML = categoriasPastas.length === 0 ? '<p style="color:var(--text-muted);">Nenhuma lista salva.</p>' :
+      document.getElementById('arvorePastasEListas').innerHTML = categoriasPastas.length === 0 ? '<p style="color:var(--text-muted);">Nenhuma lista salva nas pastas.</p>' :
         categoriasPastas.map(p => `
           <div class="folder-box">
             <div class="folder-header"><strong>📁 ${p.nome}</strong></div>
