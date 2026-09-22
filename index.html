@@ -1,13 +1,16 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>App Imuit - Gestão de Igreja</title>
+  <title>App Imuit - Gestão Integrada de Igreja</title>
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <!-- html2pdf.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -27,12 +30,27 @@
       --text-muted: #8b949e;
     }
 
+    [data-theme="light"] {
+      --bg-dark: #f6f8fa;
+      --card-bg: #ffffff;
+      --border-color: #d0d7de;
+      --accent-blue: #0969da;
+      --accent-green: #1a7f37;
+      --accent-green-hover: #2da44e;
+      --accent-red: #cf222e;
+      --accent-yellow: #9a6700;
+      --text-main: #1f2328;
+      --text-heading: #1f2328;
+      --text-muted: #656d76;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background-color: var(--bg-dark);
       color: var(--text-main);
       padding: 15px;
+      transition: background-color 0.3s, color 0.3s;
     }
 
     .container { max-width: 1200px; margin: 0 auto; }
@@ -74,12 +92,18 @@
 
     h1 { font-size: 1.5rem; color: var(--accent-blue); }
 
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
     .status-badge {
       padding: 4px 10px;
       border-radius: 12px;
       font-size: 0.8rem;
       font-weight: bold;
-      background: #21262d;
+      background: var(--card-bg);
       border: 1px solid var(--border-color);
       display: flex;
       align-items: center;
@@ -117,7 +141,7 @@
     .tab-btn.active {
       color: var(--accent-blue);
       border-bottom-color: var(--accent-blue);
-      background: rgba(88, 166, 255, 0.05);
+      background: rgba(88, 166, 255, 0.08);
     }
 
     .tab-content { display: none; }
@@ -185,12 +209,22 @@
 
     button:hover { background: var(--accent-green-hover); }
     button.btn-danger { background: var(--accent-red); }
-    button.btn-secondary { background: #21262d; color: var(--text-main); border: 1px solid var(--border-color); }
-    button.btn-secondary:hover { background: #30363d; }
+    button.btn-secondary { background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border-color); }
+    button.btn-secondary:hover { background: var(--border-color); }
 
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--border-color); }
     th { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; }
+
+    .tag {
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      display: inline-block;
+    }
+    .tag-blue { background: rgba(88, 166, 255, 0.2); color: var(--accent-blue); }
+    .tag-green { background: rgba(63, 185, 80, 0.2); color: #3fb950; }
 
     .folder-box {
       background: var(--bg-dark);
@@ -218,7 +252,7 @@
       border-radius: 4px;
       margin-bottom: 4px;
     }
-    .member-item-row.pendente { background: rgba(210, 153, 34, 0.1); border-left: 3px solid #d29922; }
+    .member-item-row.pendente { background: rgba(210, 153, 34, 0.15); border-left: 3px solid #d29922; }
     .member-item-row.concluido { background: rgba(63, 185, 80, 0.05); }
 
     /* ESTILOS EXCLUSIVOS PARA IMPRESSÃO DE PDF */
@@ -244,22 +278,25 @@
           <p style="font-size: 0.8rem; color: var(--text-muted);">Sincronização em Tempo Real</p>
         </div>
       </div>
-      <div id="status" class="status-badge status-offline">
-        <i data-lucide="wifi-off" style="width: 14px;"></i> Conectando...
+      <div class="header-controls">
+        <button class="btn-secondary" onclick="alternarTema()" id="btnTema">🌙 Modo Escuro</button>
+        <div id="status" class="status-badge status-offline">
+          <i data-lucide="wifi-off" style="width: 14px;"></i> Conectando...
+        </div>
       </div>
     </header>
 
-    <!-- ABAS -->
+    <!-- NAVEGAÇÃO ENTRE AS 4 ABAS -->
     <div class="tabs-nav">
       <button class="tab-btn active" onclick="switchTab('tabChamada', this)"><i data-lucide="clipboard-check"></i> 1. Chamada e Pastas</button>
-      <button class="tab-btn" onclick="switchTab('tabMembros', this)"><i data-lucide="users"></i> 2. Membros e Ministérios</button>
-      <button class="tab-btn" onclick="switchTab('tabConfig', this)"><i data-lucide="settings"></i> 3. Configuração do Logo</button>
+      <button class="tab-btn" onclick="switchTab('tabCalendario', this)"><i data-lucide="calendar"></i> 2. Calendário de Eventos</button>
+      <button class="tab-btn" onclick="switchTab('tabMembros', this)"><i data-lucide="users"></i> 3. Membros e Ministérios</button>
+      <button class="tab-btn" onclick="switchTab('tabTutorial', this)"><i data-lucide="help-circle"></i> 4. Tutorial de Uso</button>
     </div>
 
     <!-- ==================== ABA 1: PASTAS E LISTAS DE PRESENÇA ==================== -->
     <div id="tabChamada" class="tab-content active">
       <div class="grid-2">
-        
         <!-- CRIAR / GERENCIAR PASTAS -->
         <div class="card">
           <div class="card-title">
@@ -310,10 +347,9 @@
 
           <button onclick="salvarListaNaPasta()" style="width:100%; margin-top:15px;"><i data-lucide="save"></i> Salvar Lista na Pasta</button>
         </div>
-
       </div>
 
-      <!-- VISUALIZAÇÃO HIERÁRQUICA DE PASTAS E SUAS LISTAS -->
+      <!-- VISUALIZAÇÃO DE PASTAS E SUAS LISTAS -->
       <div class="card">
         <div class="card-title">
           <span><i data-lucide="folder-tree"></i> Pastas e Listas Salvas (Cultos e Eventos)</span>
@@ -322,7 +358,50 @@
       </div>
     </div>
 
-    <!-- ==================== ABA 2: MEMBROS E MINISTÉRIOS ==================== -->
+    <!-- ==================== ABA 2: CALENDÁRIO ==================== -->
+    <div id="tabCalendario" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title"><span><i data-lucide="calendar-plus"></i> Agendar Evento no Calendário</span></div>
+          <div class="form-group">
+            <label>Título do Evento:</label>
+            <input type="text" id="evtTitulo" placeholder="Ex: Culto de Celebração">
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+              <label>Data Inicial:</label>
+              <input type="date" id="evtData">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label>Horário:</label>
+              <input type="time" id="evtHora" value="19:00">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Recorrência (Repetição):</label>
+            <select id="evtRecorrencia">
+              <option value="UNICO">Evento Único (Sem repetição)</option>
+              <option value="SEMANAL">Repetir Toda Semana (Ex: Todo Domingo)</option>
+              <option value="MENSAL">Repetir Todo Mês</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Quantidade de repetições (Semanas/Meses):</label>
+            <input type="number" id="evtQtd" value="4" min="1" max="52">
+          </div>
+          <button onclick="salvarEvento()"><i data-lucide="calendar-check"></i> Agendar Evento(s)</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span><i data-lucide="list"></i> Próximos Eventos Agendados</span></div>
+          <div id="listaEventosProximos">
+            <p style="color: var(--text-muted);">Nenhum evento agendado.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== ABA 3: MEMBROS E MINISTÉRIOS ==================== -->
     <div id="tabMembros" class="tab-content">
       <div class="grid-2">
         <div class="card">
@@ -354,18 +433,16 @@
       </div>
     </div>
 
-    <!-- ==================== ABA 3: CONFIGURAÇÃO DO LOGO ==================== -->
-    <div id="tabConfig" class="tab-content">
+    <!-- ==================== ABA 4: TUTORIAL ==================== -->
+    <div id="tabTutorial" class="tab-content">
       <div class="card">
-        <div class="card-title"><span><i data-lucide="image"></i> Configurar Logo do Aplicativo</span></div>
-        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">
-          Coloque a URL direta de uma imagem da internet para carregar como logo em todos os dispositivos.
-        </p>
-        <div class="form-group">
-          <label>URL / Link do Logo:</label>
-          <input type="text" id="inputUrlLogo" placeholder="https://exemplo.com/sua-logo.png">
+        <div class="card-title"><span><i data-lucide="help-circle"></i> Guia Rápido de Uso</span></div>
+        <div style="line-height: 1.6; color: var(--text-main);">
+          <p><strong>1. Chamada e Pastas:</strong> Crie uma pasta (ex: <i>Cultos de Domingo</i>) e selecione-a no formulário para salvar cada chamada individual (ex: <i>Culto 20/09/2026</i>). Ordene por pendentes para terminar a lista rapidamente e clique em PDF/Imprimir para gerar relatórios visuais com gráficos.</p>
+          <p style="margin-top:10px;"><strong>2. Calendário:</strong> Agende cultos ou eventos recorrentes de uma só vez (ex: todos os cultos de domingo para o mês inteiro). Se necessário, você pode cancelar um evento futuro ou a série completa.</p>
+          <p style="margin-top:10px;"><strong>3. Membros:</strong> Cadastre novos membros com formação automática de telefone DDD `(XX) XXXXX-XXXX` e consulte a lista centralizada.</p>
+          <p style="margin-top:10px;"><strong>4. Modo Claro/Escuro:</strong> Alterne a aparência no canto superior direito conforme a iluminação do ambiente.</p>
         </div>
-        <button onclick="salvarUrlLogo()"><i data-lucide="save"></i> Salvar Logo na Nuvem</button>
       </div>
     </div>
 
@@ -391,36 +468,30 @@
     // ESTADO DA APLICAÇÃO
     let membros = [];
     let categoriasPastas = [];
-    let logoUrl = "logo.png";
+    let eventos = [];
     let chamadasEstadoLocal = {};
     let modoOrdenacaoChamada = "PENDENTES";
+    let temaAtual = "dark";
 
     // SINCRONIZAÇÃO EM TEMPO REAL
-    db.ref('app_imuit_v2').on('value', (snapshot) => {
+    db.ref('app_imuit_v3').on('value', (snapshot) => {
       const data = snapshot.val();
       if (data) {
         membros = data.membros || [];
         categoriasPastas = data.categoriasPastas || [];
-        logoUrl = data.logoUrl || "logo.png";
+        eventos = data.eventos || [];
       }
 
       document.getElementById('status').className = "status-badge status-online";
       document.getElementById('status').innerHTML = `<i data-lucide="wifi" style="width:14px;"></i> Sincronizado`;
       
-      if (logoUrl && logoUrl !== "logo.png") {
-        const logoImg = document.getElementById('appLogoImg');
-        logoImg.src = logoUrl;
-        logoImg.style.display = 'block';
-        document.getElementById('altChurchIcon').style.display = 'none';
-      }
-
       lucide.createIcons();
       renderTudo();
     });
 
     function salvarDados() {
-      db.ref('app_imuit_v2').set({
-        membros, categoriasPastas, logoUrl,
+      db.ref('app_imuit_v3').set({
+        membros, categoriasPastas, eventos,
         ultimaAtualizacao: new Date().toISOString()
       });
     }
@@ -430,6 +501,13 @@
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
       btn.classList.add('active');
+    }
+
+    function alternarTema() {
+      temaAtual = temaAtual === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", temaAtual);
+      const btn = document.getElementById("btnTema");
+      btn.innerHTML = temaAtual === "dark" ? "🌙 Modo Escuro" : "☀️ Modo Claro";
     }
 
     function mascaraTelefone(input) {
@@ -443,7 +521,7 @@
       input.value = v;
     }
 
-    // ==================== GERENCIAMENTO DE PASTAS & LISTAS ====================
+    // ==================== PASTAS & LISTAS ====================
     function criarNovaPasta() {
       const nome = document.getElementById('novoNomePastaCat').value.trim();
       if (!nome) return alert("Informe o nome da pasta!");
@@ -561,6 +639,45 @@
       alert("Lista salva com sucesso na pasta!");
     }
 
+    // ==================== CALENDÁRIO ====================
+    function salvarEvento() {
+      const titulo = document.getElementById('evtTitulo').value.trim();
+      const dataStr = document.getElementById('evtData').value;
+      const hora = document.getElementById('evtHora').value;
+      const recorrencia = document.getElementById('evtRecorrencia').value;
+      const qtd = parseInt(document.getElementById('evtQtd').value) || 1;
+
+      if (!titulo || !dataStr) return alert("Informe título e data!");
+
+      const grupoRecorrenciaId = recorrencia !== 'UNICO' ? Date.now() : null;
+      let dataBase = new Date(dataStr + 'T12:00:00');
+
+      for (let i = 0; i < (recorrencia === 'UNICO' ? 1 : qtd); i++) {
+        let d = new Date(dataBase);
+        if (recorrencia === 'SEMANAL') d.setDate(d.getDate() + (i * 7));
+        if (recorrencia === 'MENSAL') d.setMonth(d.getMonth() + i);
+
+        eventos.push({
+          id: Date.now() + i,
+          grupoId: grupoRecorrenciaId,
+          titulo,
+          data: d.toISOString().split('T')[0],
+          hora
+        });
+      }
+
+      document.getElementById('evtTitulo').value = '';
+      salvarDados();
+      alert("Evento(s) agendado(s)!");
+    }
+
+    function cancelarEvento(id) {
+      if (confirm("Cancelar este evento?")) {
+        eventos = eventos.filter(e => e.id !== id);
+        salvarDados();
+      }
+    }
+
     // ==================== IMPRESSÃO & GERAÇÃO DE PDF ====================
     function gerarPDFLista(pastaId, listaId) {
       const pasta = categoriasPastas.find(p => p.id === pastaId);
@@ -646,14 +763,6 @@
       }
     }
 
-    function salvarUrlLogo() {
-      const url = document.getElementById('inputUrlLogo').value.trim();
-      if (!url) return alert("Informe a URL!");
-      logoUrl = url;
-      salvarDados();
-      alert("Logo salva na nuvem!");
-    }
-
     // ==================== RENDERIZAR TUDO ====================
     function renderTudo() {
       const boxPastas = document.getElementById('listaCategoriasPastas');
@@ -698,11 +807,20 @@
         </tr>
       `).join('');
 
+      document.getElementById('listaEventosProximos').innerHTML = eventos.length === 0 ? '<p style="color:var(--text-muted);">Nenhum evento agendado.</p>' :
+        eventos.sort((a,b) => a.data.localeCompare(b.data)).map(e => `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border-color);">
+            <span>📅 <strong>${e.data} às ${e.hora}</strong> - ${e.titulo}</span>
+            <button class="btn-danger" style="padding:2px 6px; font-size:0.75rem;" onclick="cancelarEvento(${e.id})">Cancelar</button>
+          </div>
+        `).join('');
+
       renderBoxChamada();
       lucide.createIcons();
     }
 
     document.getElementById('listaData').value = new Date().toISOString().split('T')[0];
+    document.getElementById('evtData').value = new Date().toISOString().split('T')[0];
   </script>
 </body>
 </html>
