@@ -51,9 +51,10 @@
       color: var(--text-main);
       padding: 15px;
       transition: background-color 0.3s, color 0.3s;
+      overflow-x: hidden;
     }
 
-    .container { max-width: 1200px; margin: 0 auto; }
+    .container { max-width: 1200px; margin: 0 auto; position: relative; }
 
     header {
       display: flex;
@@ -112,7 +113,7 @@
     .status-online { color: #3fb950; border-color: rgba(63, 185, 80, 0.4); }
     .status-offline { color: #f85149; border-color: rgba(248, 81, 73, 0.4); }
 
-    /* NAVEGAÇÃO DE ABAS */
+    /* BARRA DE NAVEGAÇÃO */
     .tabs-nav {
       display: flex;
       gap: 8px;
@@ -144,8 +145,51 @@
       background: rgba(88, 166, 255, 0.08);
     }
 
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
+    /* CARROSSEL E SLIDER DESLIZANTE */
+    .carousel-view {
+      overflow: hidden;
+      width: 100%;
+      position: relative;
+    }
+
+    .carousel-track {
+      display: flex;
+      transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+      width: 400%;
+    }
+
+    .tab-content {
+      width: 25%;
+      flex-shrink: 0;
+      padding: 5px;
+    }
+
+    /* SETAS DE NAVEGAÇÃO PARA DESKTOP */
+    .nav-arrow {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: all 0.2s;
+    }
+    .nav-arrow:hover { background: var(--accent-blue); color: #fff; }
+    .nav-arrow.left { left: 15px; }
+    .nav-arrow.right { right: 15px; }
+
+    @media (max-width: 900px) {
+      .nav-arrow { display: none !important; }
+    }
 
     .card {
       background: var(--card-bg);
@@ -222,6 +266,7 @@
       font-size: 0.75rem;
       font-weight: bold;
       display: inline-block;
+      margin-right: 4px;
     }
     .tag-blue { background: rgba(88, 166, 255, 0.2); color: var(--accent-blue); }
     .tag-green { background: rgba(63, 185, 80, 0.2); color: #3fb950; }
@@ -255,7 +300,6 @@
     .member-item-row.pendente { background: rgba(210, 153, 34, 0.15); border-left: 3px solid #d29922; }
     .member-item-row.concluido { background: rgba(63, 185, 80, 0.05); }
 
-    /* ESTILOS EXCLUSIVOS PARA IMPRESSÃO DE PDF */
     @media print {
       body * { visibility: hidden; }
       #printArea, #printArea * { visibility: visible; }
@@ -265,6 +309,10 @@
   </style>
 </head>
 <body>
+
+  <!-- SETAS DE NAVEGAÇÃO LATERAL (SOMENTE NO DESKTOP) -->
+  <button class="nav-arrow left no-print" onclick="navegarProximaJanela(-1)"><i data-lucide="chevron-left"></i></button>
+  <button class="nav-arrow right no-print" onclick="navegarProximaJanela(1)"><i data-lucide="chevron-right"></i></button>
 
   <div class="container no-print">
     <header>
@@ -286,169 +334,184 @@
       </div>
     </header>
 
-    <!-- NAVEGAÇÃO ENTRE AS 4 ABAS -->
+    <!-- ABAS -->
     <div class="tabs-nav">
-      <button class="tab-btn active" onclick="switchTab('tabChamada', this)"><i data-lucide="clipboard-check"></i> 1. Chamada e Pastas</button>
-      <button class="tab-btn" onclick="switchTab('tabCalendario', this)"><i data-lucide="calendar"></i> 2. Calendário de Eventos</button>
-      <button class="tab-btn" onclick="switchTab('tabMembros', this)"><i data-lucide="users"></i> 3. Membros e Ministérios</button>
-      <button class="tab-btn" onclick="switchTab('tabTutorial', this)"><i data-lucide="help-circle"></i> 4. Tutorial de Uso</button>
+      <button class="tab-btn active" onclick="irParaJanela(0)"><i data-lucide="clipboard-check"></i> 1. Chamada e Pastas</button>
+      <button class="tab-btn" onclick="irParaJanela(1)"><i data-lucide="calendar"></i> 2. Calendário</button>
+      <button class="tab-btn" onclick="irParaJanela(2)"><i data-lucide="users"></i> 3. Membros & Ministérios</button>
+      <button class="tab-btn" onclick="irParaJanela(3)"><i data-lucide="help-circle"></i> 4. Tutorial de Uso</button>
     </div>
 
-    <!-- ==================== ABA 1: PASTAS E LISTAS DE PRESENÇA ==================== -->
-    <div id="tabChamada" class="tab-content active">
-      <div class="grid-2">
-        <!-- CRIAR / GERENCIAR PASTAS -->
-        <div class="card">
-          <div class="card-title">
-            <span><i data-lucide="folder-plus"></i> Gerenciador de Pastas</span>
-          </div>
-          <div class="form-row">
-            <input type="text" id="novoNomePastaCat" placeholder="Nome da Pasta (ex: Cultos de Domingo)">
-            <button onclick="criarNovaPasta()"><i data-lucide="plus"></i> Criar Pasta</button>
+    <!-- ÁREA DESLIZANTE DA INTERFACE -->
+    <div class="carousel-view" id="touchArea">
+      <div class="carousel-track" id="carouselTrack">
+        
+        <!-- ==================== JANELA 1: CHAMADA E PASTAS ==================== -->
+        <div class="tab-content">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title"><span><i data-lucide="folder-plus"></i> Gerenciador de Pastas</span></div>
+              <div class="form-row">
+                <input type="text" id="novoNomePastaCat" placeholder="Nome da Pasta (ex: Cultos de Domingo)">
+                <button onclick="criarNovaPasta()"><i data-lucide="plus"></i> Criar Pasta</button>
+              </div>
+              <h3 style="font-size:0.9rem; color:var(--text-muted); margin:15px 0 10px 0;">Pastas Existentes:</h3>
+              <div id="listaCategoriasPastas"><p style="color:var(--text-muted);">Nenhuma pasta criada.</p></div>
+            </div>
+
+            <div class="card">
+              <div class="card-title"><span><i data-lucide="file-check"></i> Realizar Chamada</span></div>
+              <div class="form-group">
+                <label>Selecione a Pasta de Destino:</label>
+                <select id="selPastaDestino"></select>
+              </div>
+              <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                  <label>Nome do Evento / Lista:</label>
+                  <input type="text" id="listaTitulo" placeholder="Ex: Culto 20/09/2026">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label>Data:</label>
+                  <input type="date" id="listaData">
+                </div>
+              </div>
+
+              <!-- FILTRO POR MINISTÉRIO -->
+              <div class="form-group">
+                <label>Filtrar Chamada por Ministério:</label>
+                <select id="selFiltroMinChamada" onchange="renderBoxChamada()">
+                  <option value="TODOS">Todos os Membros</option>
+                </select>
+              </div>
+
+              <!-- CONTROLES DE ORDENAÇÃO -->
+              <div style="background:var(--bg-dark); padding:10px; border-radius:6px; margin:10px 0; border:1px solid var(--border-color);">
+                <label style="display:block; margin-bottom:6px; font-weight:bold;">Ordenar Lista por:</label>
+                <div class="form-row">
+                  <button class="btn-secondary" style="font-size:0.75rem; padding:4px 8px;" onclick="ordenarChamada('PENDENTES')">⚡ Pendentes Primeiro</button>
+                  <button class="btn-secondary" style="font-size:0.75rem; padding:4px 8px;" onclick="ordenarChamada('NOME')">🔤 Ordem A-Z</button>
+                  <button class="btn-secondary" style="font-size:0.75rem; padding:4px 8px;" onclick="ordenarChamada('STATUS')">📊 Por Status</button>
+                </div>
+              </div>
+
+              <div id="boxMembrosChamada" style="max-height: 380px; overflow-y: auto; padding-right: 5px;"></div>
+              <button onclick="salvarListaNaPasta()" style="width:100%; margin-top:15px;"><i data-lucide="save"></i> Salvar Lista na Pasta</button>
+            </div>
           </div>
 
-          <h3 style="font-size:0.9rem; color:var(--text-muted); margin:15px 0 10px 0;">Pastas Existentes:</h3>
-          <div id="listaCategoriasPastas">
-            <p style="color:var(--text-muted);">Nenhuma pasta criada.</p>
+          <div class="card">
+            <div class="card-title"><span><i data-lucide="folder-tree"></i> Pastas e Listas Salvas (Cultos e Eventos)</span></div>
+            <div id="arvorePastasEListas"></div>
           </div>
         </div>
 
-        <!-- REALIZAR CHAMADA DA LISTA -->
-        <div class="card">
-          <div class="card-title">
-            <span><i data-lucide="file-check"></i> Realizar Chamada</span>
-          </div>
-          <div class="form-group">
-            <label>Selecione a Pasta de Destino:</label>
-            <select id="selPastaDestino"></select>
-          </div>
-          <div class="form-row">
-            <div class="form-group" style="flex: 1;">
-              <label>Nome do Evento / Lista:</label>
-              <input type="text" id="listaTitulo" placeholder="Ex: Culto 20/09/2026">
+        <!-- ==================== JANELA 2: CALENDÁRIO ==================== -->
+        <div class="tab-content">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title"><span><i data-lucide="calendar-plus"></i> Agendar Evento no Calendário</span></div>
+              <div class="form-group">
+                <label>Título do Evento:</label>
+                <input type="text" id="evtTitulo" placeholder="Ex: Culto de Celebração">
+              </div>
+              <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                  <label>Data Inicial:</label>
+                  <input type="date" id="evtData">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label>Horário:</label>
+                  <input type="time" id="evtHora" value="19:00">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Recorrência (Repetição):</label>
+                <select id="evtRecorrencia">
+                  <option value="UNICO">Evento Único (Sem repetição)</option>
+                  <option value="SEMANAL">Repetir Toda Semana (Ex: Todo Domingo)</option>
+                  <option value="MENSAL">Repetir Todo Mês</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Quantidade de repetições (Semanas/Meses):</label>
+                <input type="number" id="evtQtd" value="4" min="1" max="52">
+              </div>
+              <button onclick="salvarEvento()"><i data-lucide="calendar-check"></i> Agendar Evento(s)</button>
             </div>
-            <div class="form-group" style="flex: 1;">
-              <label>Data:</label>
-              <input type="date" id="listaData">
+
+            <div class="card">
+              <div class="card-title"><span><i data-lucide="list"></i> Próximos Eventos Agendados</span></div>
+              <div id="listaEventosProximos"><p style="color: var(--text-muted);">Nenhum evento agendado.</p></div>
             </div>
           </div>
-
-          <!-- CONTROLES DE ORDENAÇÃO -->
-          <div style="background:var(--bg-dark); padding:10px; border-radius:6px; margin:10px 0; border:1px solid var(--border-color);">
-            <label style="display:block; margin-bottom:6px; font-weight:bold;">Ordenar Lista por:</label>
-            <div class="form-row">
-              <button class="btn-secondary" style="font-size:0.75rem; padding:4px 8px;" onclick="ordenarChamada('PENDENTES')">⚡ Pendentes Primeiro</button>
-              <button class="btn-secondary" style="font-size:0.75rem; padding:4px 8px;" onclick="ordenarChamada('NOME')">🔤 Ordem A-Z</button>
-              <button class="btn-secondary" style="font-size:0.75rem; padding:4px 8px;" onclick="ordenarChamada('STATUS')">📊 Por Status</button>
-            </div>
-          </div>
-
-          <div id="boxMembrosChamada" style="max-height: 400px; overflow-y: auto; padding-right: 5px;"></div>
-
-          <button onclick="salvarListaNaPasta()" style="width:100%; margin-top:15px;"><i data-lucide="save"></i> Salvar Lista na Pasta</button>
         </div>
-      </div>
 
-      <!-- VISUALIZAÇÃO DE PASTAS E SUAS LISTAS -->
-      <div class="card">
-        <div class="card-title">
-          <span><i data-lucide="folder-tree"></i> Pastas e Listas Salvas (Cultos e Eventos)</span>
+        <!-- ==================== JANELA 3: MEMBROS & MINISTÉRIOS ==================== -->
+        <div class="tab-content">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title"><span><i data-lucide="user-plus"></i> Cadastrar Membro / Visitante</span></div>
+              <div class="form-group">
+                <label>Nome Completo:</label>
+                <input type="text" id="memNome" placeholder="Ex: João da Silva">
+              </div>
+              <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                  <label>Apelido:</label>
+                  <input type="text" id="memApelido" placeholder="Ex: Joãozinho">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label>Telefone:</label>
+                  <input type="text" id="memFone" placeholder="(00) 00000-0000" oninput="mascaraTelefone(this)">
+                </div>
+              </div>
+              
+              <!-- MINISTÉRIOS ASSOCIAÇÃO -->
+              <div class="form-group">
+                <label>Selecione o(s) Ministério(s) (ou Deixe em Branco para Visitante):</label>
+                <div id="boxCheckMinisterios" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:5px;"></div>
+              </div>
+
+              <button onclick="salvarMembro()"><i data-lucide="check"></i> Cadastrar Membro</button>
+            </div>
+
+            <div class="card">
+              <div class="card-title"><span><i data-lucide="briefcase"></i> Gerenciar Ministérios</span></div>
+              <div class="form-row">
+                <input type="text" id="novoMinNome" placeholder="Ex: Louvor, Mídia, Infantil">
+                <button onclick="criarMinisterio()"><i data-lucide="plus"></i> Criar</button>
+              </div>
+              <h3 style="font-size:0.9rem; color:var(--text-muted); margin:15px 0 10px 0;">Ministérios Cadastrados:</h3>
+              <div id="listaMinisteriosCadastrados"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><span><i data-lucide="users"></i> Membros Cadastrados</span></div>
+            <table style="width:100%;">
+              <thead><tr><th>Nome / Apelido</th><th>Contato</th><th>Ministérios</th><th>Ações</th></tr></thead>
+              <tbody id="tbMembrosCorpo"></tbody>
+            </table>
+          </div>
         </div>
-        <div id="arvorePastasEListas"></div>
+
+        <!-- ==================== JANELA 4: TUTORIAL ==================== -->
+        <div class="tab-content">
+          <div class="card">
+            <div class="card-title"><span><i data-lucide="help-circle"></i> Guia Rápido de Uso</span></div>
+            <div style="line-height: 1.6; color: var(--text-main);">
+              <p><strong>📱 Navegação por Gestos (Celular):</strong> Deslize o dedo para a esquerda ou para a direita para mudar de tela!</p>
+              <p style="margin-top:10px;"><strong>💻 Navegação por Setas (Notebook):</strong> Use as setas flutuantes na lateral da tela para alternar de janela com um clique.</p>
+              <p style="margin-top:10px;"><strong>1. Chamada e Pastas:</strong> Crie uma pasta e salve cada lista de presença dentro dela. Você pode filtrar a chamada por Ministérios específicos (ex: fazer chamada só do Louvor).</p>
+              <p style="margin-top:10px;"><strong>2. Ministérios:</strong> Cadastre novos grupos na Janela 3. Os membros podem pertencer a 1 ou mais ministérios, ou ficar sem grupo caso sejam visitantes.</p>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
-
-    <!-- ==================== ABA 2: CALENDÁRIO ==================== -->
-    <div id="tabCalendario" class="tab-content">
-      <div class="grid-2">
-        <div class="card">
-          <div class="card-title"><span><i data-lucide="calendar-plus"></i> Agendar Evento no Calendário</span></div>
-          <div class="form-group">
-            <label>Título do Evento:</label>
-            <input type="text" id="evtTitulo" placeholder="Ex: Culto de Celebração">
-          </div>
-          <div class="form-row">
-            <div class="form-group" style="flex: 1;">
-              <label>Data Inicial:</label>
-              <input type="date" id="evtData">
-            </div>
-            <div class="form-group" style="flex: 1;">
-              <label>Horário:</label>
-              <input type="time" id="evtHora" value="19:00">
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Recorrência (Repetição):</label>
-            <select id="evtRecorrencia">
-              <option value="UNICO">Evento Único (Sem repetição)</option>
-              <option value="SEMANAL">Repetir Toda Semana (Ex: Todo Domingo)</option>
-              <option value="MENSAL">Repetir Todo Mês</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Quantidade de repetições (Semanas/Meses):</label>
-            <input type="number" id="evtQtd" value="4" min="1" max="52">
-          </div>
-          <button onclick="salvarEvento()"><i data-lucide="calendar-check"></i> Agendar Evento(s)</button>
-        </div>
-
-        <div class="card">
-          <div class="card-title"><span><i data-lucide="list"></i> Próximos Eventos Agendados</span></div>
-          <div id="listaEventosProximos">
-            <p style="color: var(--text-muted);">Nenhum evento agendado.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== ABA 3: MEMBROS E MINISTÉRIOS ==================== -->
-    <div id="tabMembros" class="tab-content">
-      <div class="grid-2">
-        <div class="card">
-          <div class="card-title"><span><i data-lucide="user-plus"></i> Cadastrar Membro</span></div>
-          <div class="form-group">
-            <label>Nome Completo:</label>
-            <input type="text" id="memNome" placeholder="Ex: João da Silva">
-          </div>
-          <div class="form-row">
-            <div class="form-group" style="flex: 1;">
-              <label>Apelido:</label>
-              <input type="text" id="memApelido" placeholder="Ex: Joãozinho">
-            </div>
-            <div class="form-group" style="flex: 1;">
-              <label>Telefone:</label>
-              <input type="text" id="memFone" placeholder="(00) 00000-0000" oninput="mascaraTelefone(this)">
-            </div>
-          </div>
-          <button onclick="salvarMembro()"><i data-lucide="check"></i> Cadastrar</button>
-        </div>
-
-        <div class="card">
-          <div class="card-title"><span><i data-lucide="users"></i> Membros Cadastrados</span></div>
-          <table style="width:100%;">
-            <thead><tr><th>Nome</th><th>Contato</th><th>Ações</th></tr></thead>
-            <tbody id="tbMembrosCorpo"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== ABA 4: TUTORIAL ==================== -->
-    <div id="tabTutorial" class="tab-content">
-      <div class="card">
-        <div class="card-title"><span><i data-lucide="help-circle"></i> Guia Rápido de Uso</span></div>
-        <div style="line-height: 1.6; color: var(--text-main);">
-          <p><strong>1. Chamada e Pastas:</strong> Crie uma pasta (ex: <i>Cultos de Domingo</i>) e selecione-a no formulário para salvar cada chamada individual (ex: <i>Culto 20/09/2026</i>). Ordene por pendentes para terminar a lista rapidamente e clique em PDF/Imprimir para gerar relatórios visuais com gráficos.</p>
-          <p style="margin-top:10px;"><strong>2. Calendário:</strong> Agende cultos ou eventos recorrentes de uma só vez (ex: todos os cultos de domingo para o mês inteiro). Se necessário, você pode cancelar um evento futuro ou a série completa.</p>
-          <p style="margin-top:10px;"><strong>3. Membros:</strong> Cadastre novos membros com formação automática de telefone DDD `(XX) XXXXX-XXXX` e consulte a lista centralizada.</p>
-          <p style="margin-top:10px;"><strong>4. Modo Claro/Escuro:</strong> Alterne a aparência no canto superior direito conforme a iluminação do ambiente.</p>
-        </div>
-      </div>
-    </div>
-
   </div>
 
-  <!-- ÁREA EXCLUSIVA DE IMPRESSÃO GERADORA DO PDF -->
   <div id="printArea"></div>
 
   <script>
@@ -465,21 +528,23 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // ESTADO DA APLICAÇÃO
     let membros = [];
     let categoriasPastas = [];
     let eventos = [];
+    let ministerios = ["Louvor", "Mídia", "Infantil", "Jovens"];
     let chamadasEstadoLocal = {};
     let modoOrdenacaoChamada = "PENDENTES";
+    let janelaAtual = 0;
     let temaAtual = "dark";
 
-    // SINCRONIZAÇÃO EM TEMPO REAL
-    db.ref('app_imuit_v3').on('value', (snapshot) => {
+    // SINCRONIZAÇÃO NUVEM
+    db.ref('app_imuit_v4').on('value', (snapshot) => {
       const data = snapshot.val();
       if (data) {
         membros = data.membros || [];
         categoriasPastas = data.categoriasPastas || [];
         eventos = data.eventos || [];
+        ministerios = data.ministerios || ["Louvor", "Mídia", "Infantil", "Jovens"];
       }
 
       document.getElementById('status').className = "status-badge status-online";
@@ -490,24 +555,53 @@
     });
 
     function salvarDados() {
-      db.ref('app_imuit_v3').set({
-        membros, categoriasPastas, eventos,
+      db.ref('app_imuit_v4').set({
+        membros, categoriasPastas, eventos, ministerios,
         ultimaAtualizacao: new Date().toISOString()
       });
     }
 
-    function switchTab(tabId, btn) {
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      btn.classList.add('active');
+    // SLIDER DESLIZANTE E NAVEGAÇÃO
+    function irParaJanela(index) {
+      if (index < 0) index = 0;
+      if (index > 3) index = 3;
+      janelaAtual = index;
+      document.getElementById('carouselTrack').style.transform = `translateX(-${index * 25}%)`;
+      
+      const btns = document.querySelectorAll('.tab-btn');
+      btns.forEach((b, i) => {
+        if (i === index) b.classList.add('active');
+        else b.classList.remove('active');
+      });
+    }
+
+    function navegarProximaJanela(direcao) {
+      irParaJanela(janelaAtual + direcao);
+    }
+
+    // EVENTOS DE SWIPE (DESLIZAR NO CELULAR)
+    let touchStartX = 0;
+    let touchEndX = 0;
+    const touchArea = document.getElementById('touchArea');
+
+    touchArea.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, false);
+    touchArea.addEventListener('touchend', e => {
+      touchEndX = e.changedTouches[0].screenX;
+      handleSwipe();
+    }, false);
+
+    function handleSwipe() {
+      const diff = touchStartX - touchEndX;
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) navegarProximaJanela(1);  // Swipe para esquerda -> próxima janela
+        else navegarProximaJanela(-1);         // Swipe para direita -> janela anterior
+      }
     }
 
     function alternarTema() {
       temaAtual = temaAtual === "dark" ? "light" : "dark";
       document.documentElement.setAttribute("data-theme", temaAtual);
-      const btn = document.getElementById("btnTema");
-      btn.innerHTML = temaAtual === "dark" ? "🌙 Modo Escuro" : "☀️ Modo Claro";
+      document.getElementById("btnTema").innerHTML = temaAtual === "dark" ? "🌙 Modo Escuro" : "☀️ Modo Claro";
     }
 
     function mascaraTelefone(input) {
@@ -521,10 +615,28 @@
       input.value = v;
     }
 
-    // ==================== PASTAS & LISTAS ====================
+    // MINISTÉRIOS
+    function criarMinisterio() {
+      const nome = document.getElementById('novoMinNome').value.trim();
+      if (!nome) return alert("Informe o nome do ministério!");
+      if (!ministerios.includes(nome)) {
+        ministerios.push(nome);
+        document.getElementById('novoMinNome').value = '';
+        salvarDados();
+      }
+    }
+
+    function excluirMinisterio(nome) {
+      if (confirm(`Excluir o ministério "${nome}"?`)) {
+        ministerios = ministerios.filter(m => m !== nome);
+        salvarDados();
+      }
+    }
+
+    // PASTAS & LISTAS
     function criarNovaPasta() {
       const nome = document.getElementById('novoNomePastaCat').value.trim();
-      if (!nome) return alert("Informe o nome da pasta!");
+      if (!nome) return alert("Informe o nome!");
       categoriasPastas.push({ id: Date.now(), nome, listas: [] });
       document.getElementById('novoNomePastaCat').value = '';
       salvarDados();
@@ -533,7 +645,7 @@
     function editarPasta(pastaId) {
       const pasta = categoriasPastas.find(p => p.id === pastaId);
       if (!pasta) return;
-      const novoNome = prompt("Editar nome da pasta:", pasta.nome);
+      const novoNome = prompt("Editar nome:", pasta.nome);
       if (novoNome && novoNome.trim()) {
         pasta.nome = novoNome.trim();
         salvarDados();
@@ -541,14 +653,14 @@
     }
 
     function excluirPasta(pastaId) {
-      if (confirm("Deseja excluir esta pasta e todas as listas dentro dela?")) {
+      if (confirm("Excluir esta pasta e todas as listas?")) {
         categoriasPastas = categoriasPastas.filter(p => p.id !== pastaId);
         salvarDados();
       }
     }
 
     function excluirLista(pastaId, listaId) {
-      if (confirm("Apagar esta lista de chamada?")) {
+      if (confirm("Apagar lista?")) {
         const pasta = categoriasPastas.find(p => p.id === pastaId);
         if (pasta) {
           pasta.listas = pasta.listas.filter(l => l.id !== listaId);
@@ -557,7 +669,7 @@
       }
     }
 
-    // ==================== LÓGICA DA CHAMADA ====================
+    // CHAMADA
     function setStatusMembro(membroId, status) {
       chamadasEstadoLocal[membroId] = status;
       renderBoxChamada();
@@ -570,23 +682,26 @@
 
     function renderBoxChamada() {
       const container = document.getElementById('boxMembrosChamada');
-      if (membros.length === 0) {
-        container.innerHTML = '<p style="color:var(--text-muted); padding:10px;">Cadastre membros primeiro.</p>';
+      const filtroMin = document.getElementById('selFiltroMinChamada').value;
+
+      let listaFiltrada = membros;
+      if (filtroMin !== "TODOS") {
+        listaFiltrada = membros.filter(m => m.ministerios && m.ministerios.includes(filtroMin));
+      }
+
+      if (listaFiltrada.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-muted); padding:10px;">Nenhum membro encontrado para esta lista.</p>';
         return;
       }
 
-      membros.forEach(m => {
+      listaFiltrada.forEach(m => {
         if (!chamadasEstadoLocal[m.id]) chamadasEstadoLocal[m.id] = "PENDENTE";
       });
 
-      let listaOrdenada = [...membros];
+      let listaOrdenada = [...listaFiltrada];
 
       if (modoOrdenacaoChamada === 'PENDENTES') {
-        listaOrdenada.sort((a, b) => {
-          const stA = chamadasEstadoLocal[a.id] === 'PENDENTE' ? 0 : 1;
-          const stB = chamadasEstadoLocal[b.id] === 'PENDENTE' ? 0 : 1;
-          return stA - stB;
-        });
+        listaOrdenada.sort((a, b) => (chamadasEstadoLocal[a.id] === 'PENDENTE' ? 0 : 1) - (chamadasEstadoLocal[b.id] === 'PENDENTE' ? 0 : 1));
       } else if (modoOrdenacaoChamada === 'NOME') {
         listaOrdenada.sort((a, b) => a.nome.localeCompare(b.nome));
       } else if (modoOrdenacaoChamada === 'STATUS') {
@@ -596,10 +711,8 @@
 
       container.innerHTML = listaOrdenada.map(m => {
         const st = chamadasEstadoLocal[m.id];
-        const ehPendente = st === "PENDENTE";
-
         return `
-          <div class="member-item-row ${ehPendente ? 'pendente' : 'concluido'}">
+          <div class="member-item-row ${st === 'PENDENTE' ? 'pendente' : 'concluido'}">
             <div>
               <strong>${m.nome}</strong> ${m.apelido ? `<small style="color:var(--text-muted)">(${m.apelido})</small>` : ''}
             </div>
@@ -620,7 +733,7 @@
       const titulo = document.getElementById('listaTitulo').value.trim();
       const data = document.getElementById('listaData').value;
 
-      if (!pastaId) return alert("Crie e selecione uma pasta de destino!");
+      if (!pastaId) return alert("Selecione uma pasta!");
       if (!titulo || !data) return alert("Informe título e data!");
 
       const pasta = categoriasPastas.find(p => p.id === pastaId);
@@ -636,10 +749,10 @@
       chamadasEstadoLocal = {};
       document.getElementById('listaTitulo').value = '';
       salvarDados();
-      alert("Lista salva com sucesso na pasta!");
+      alert("Lista salva com sucesso!");
     }
 
-    // ==================== CALENDÁRIO ====================
+    // CALENDÁRIO
     function salvarEvento() {
       const titulo = document.getElementById('evtTitulo').value.trim();
       const dataStr = document.getElementById('evtData').value;
@@ -657,18 +770,12 @@
         if (recorrencia === 'SEMANAL') d.setDate(d.getDate() + (i * 7));
         if (recorrencia === 'MENSAL') d.setMonth(d.getMonth() + i);
 
-        eventos.push({
-          id: Date.now() + i,
-          grupoId: grupoRecorrenciaId,
-          titulo,
-          data: d.toISOString().split('T')[0],
-          hora
-        });
+        eventos.push({ id: Date.now() + i, grupoId: grupoRecorrenciaId, titulo, data: d.toISOString().split('T')[0], hora });
       }
 
       document.getElementById('evtTitulo').value = '';
       salvarDados();
-      alert("Evento(s) agendado(s)!");
+      alert("Evento agendado!");
     }
 
     function cancelarEvento(id) {
@@ -678,7 +785,7 @@
       }
     }
 
-    // ==================== IMPRESSÃO & GERAÇÃO DE PDF ====================
+    // PDF IMPRESSÃO
     function gerarPDFLista(pastaId, listaId) {
       const pasta = categoriasPastas.find(p => p.id === pastaId);
       if (!pasta) return;
@@ -697,13 +804,10 @@
       const area = document.getElementById('printArea');
       area.innerHTML = `
         <div style="font-family: Arial, sans-serif; color: #000; padding: 20px;">
-          <!-- 1. TÍTULO -->
           <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
             <h1 style="margin: 0; font-size: 22px;">APP IMUIT - RELATÓRIO DE PRESENÇA</h1>
             <h3 style="margin: 5px 0 0 0; color: #555;">Pasta: ${pasta.nome} | Evento: ${lista.titulo} (${lista.data})</h3>
           </div>
-
-          <!-- 2. GRÁFICO E RESUMO DAS ESTATÍSTICAS -->
           <div style="background: #f9f9f9; border: 1px solid #ccc; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
             <h4 style="margin-top:0;">Resumo da Frequência Total (${total} Membros)</h4>
             <div style="display: flex; height: 24px; border-radius: 4px; overflow: hidden; margin: 10px 0; border: 1px solid #999;">
@@ -717,8 +821,6 @@
               <span><strong>✗ Faltas:</strong> ${faltas}</span>
             </p>
           </div>
-
-          <!-- 3. LISTA COMPLETA DOS NOMES E STATUS -->
           <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
             <thead>
               <tr style="background: #eee;">
@@ -727,28 +829,26 @@
               </tr>
             </thead>
             <tbody>
-              ${lista.registros.map(r => `
-                <tr>
-                  <td style="border: 1px solid #ddd; padding: 8px;">${r.nome}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">${r.status}</td>
-                </tr>
-              `).join('')}
+              ${lista.registros.map(r => `<tr><td style="border: 1px solid #ddd; padding: 8px;">${r.nome}</td><td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">${r.status}</td></tr>`).join('')}
             </tbody>
           </table>
         </div>
       `;
-
       window.print();
     }
 
-    // ==================== OUTRAS FUNÇÕES ====================
+    // CADASTRO DE MEMBRO
     function salvarMembro() {
       const nome = document.getElementById('memNome').value.trim();
       const apelido = document.getElementById('memApelido').value.trim();
       const fone = document.getElementById('memFone').value.trim();
 
       if (!nome) return alert("Informe o nome!");
-      membros.push({ id: Date.now(), nome, apelido, fone });
+
+      const minSel = [];
+      document.querySelectorAll('.min-checkbox:checked').forEach(c => minSel.push(c.value));
+
+      membros.push({ id: Date.now(), nome, apelido, fone, ministerios: minSel });
       
       document.getElementById('memNome').value = '';
       document.getElementById('memApelido').value = '';
@@ -763,10 +863,10 @@
       }
     }
 
-    // ==================== RENDERIZAR TUDO ====================
+    // RENDERIZADOR CENTRAL
     function renderTudo() {
-      const boxPastas = document.getElementById('listaCategoriasPastas');
-      boxPastas.innerHTML = categoriasPastas.length === 0 ? '<p style="color:var(--text-muted);">Nenhuma pasta.</p>' :
+      // 1. Renderizar Pastas
+      document.getElementById('listaCategoriasPastas').innerHTML = categoriasPastas.length === 0 ? '<p style="color:var(--text-muted);">Nenhuma pasta.</p>' :
         categoriasPastas.map(p => `
           <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border-color);">
             <span>📁 <strong>${p.nome}</strong> (${p.listas ? p.listas.length : 0} listas)</span>
@@ -777,16 +877,28 @@
           </div>
         `).join('');
 
-      const selDestino = document.getElementById('selPastaDestino');
-      selDestino.innerHTML = categoriasPastas.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+      document.getElementById('selPastaDestino').innerHTML = categoriasPastas.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
 
-      const boxArvore = document.getElementById('arvorePastasEListas');
-      boxArvore.innerHTML = categoriasPastas.length === 0 ? '<p style="color:var(--text-muted);">Nenhuma pasta ou lista criada.</p>' :
+      // 2. Renderizar Ministérios
+      document.getElementById('listaMinisteriosCadastrados').innerHTML = ministerios.map(m => `
+        <span class="tag tag-green" style="padding:4px 8px; margin-bottom:4px;">
+          ${m} <i data-lucide="x" style="width:12px; cursor:pointer;" onclick="excluirMinisterio('${m}')"></i>
+        </span>
+      `).join('');
+
+      document.getElementById('boxCheckMinisterios').innerHTML = ministerios.map(m => `
+        <label style="font-size:0.85rem; display:flex; align-items:center; gap:4px; cursor:pointer;">
+          <input type="checkbox" class="min-checkbox" value="${m}"> ${m}
+        </label>
+      `).join('');
+
+      document.getElementById('selFiltroMinChamada').innerHTML = '<option value="TODOS">Todos os Membros</option>' + ministerios.map(m => `<option value="${m}">${m}</option>`).join('');
+
+      // 3. Renderizar Árvore de Pastas > Listas
+      document.getElementById('arvorePastasEListas').innerHTML = categoriasPastas.length === 0 ? '<p style="color:var(--text-muted);">Nenhuma lista cadastrada.</p>' :
         categoriasPastas.map(p => `
           <div class="folder-box">
-            <div class="folder-header">
-              <strong>📁 ${p.nome}</strong>
-            </div>
+            <div class="folder-header"><strong>📁 ${p.nome}</strong></div>
             ${p.listas && p.listas.length > 0 ? p.listas.map(l => `
               <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px dashed var(--border-color);">
                 <span>📄 <strong>${l.titulo}</strong> <small style="color:var(--text-muted)">(${l.data})</small></span>
@@ -799,14 +911,17 @@
           </div>
         `).join('');
 
+      // 4. Renderizar Membros
       document.getElementById('tbMembrosCorpo').innerHTML = membros.map(m => `
         <tr>
           <td><strong>${m.nome}</strong> ${m.apelido ? `(${m.apelido})` : ''}</td>
           <td>${m.fone || '-'}</td>
+          <td>${m.ministerios && m.ministerios.length > 0 ? m.ministerios.map(x => `<span class="tag tag-blue">${x}</span>`).join('') : '<span class="tag">Visitante</span>'}</td>
           <td><button class="btn-danger" style="padding:2px 6px;" onclick="removerMembro(${m.id})">Remover</button></td>
         </tr>
       `).join('');
 
+      // 5. Renderizar Eventos
       document.getElementById('listaEventosProximos').innerHTML = eventos.length === 0 ? '<p style="color:var(--text-muted);">Nenhum evento agendado.</p>' :
         eventos.sort((a,b) => a.data.localeCompare(b.data)).map(e => `
           <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border-color);">
