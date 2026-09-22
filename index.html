@@ -5,11 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>App Imuit - Gestão Integrada de Igreja</title>
 
-  <!-- Firebase SDKs -->
+  <link rel="icon" type="image/png" sizes="32x32" href="logo.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="logo.png">
+  <link rel="shortcut icon" href="logo.png" type="image/x-icon">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="logo.png">
+
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="App Imuit">
+  <meta name="theme-color" content="#0d1117">
+
+  <link rel="manifest" href='data:application/manifest+json,{
+    "name": "App Imuit - Gestão Integrada",
+    "short_name": "App Imuit",
+    "start_url": "./",
+    "display": "standalone",
+    "background_color": "#0d1117",
+    "theme_color": "#0d1117",
+    "icons": [
+      {
+        "src": "logo.png",
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "any maskable"
+      },
+      {
+        "src": "logo.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "any maskable"
+      }
+    ]
+  }'>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
@@ -402,7 +434,6 @@
     <div class="carousel-view">
       <div class="carousel-track" id="carouselTrack">
         
-        <!-- JANELA 1 -->
         <div class="tab-content">
           <div class="grid-2">
             <div class="card">
@@ -460,7 +491,6 @@
           </div>
         </div>
 
-        <!-- JANELA 2 -->
         <div class="tab-content">
           <div class="grid-2">
             <div class="card">
@@ -520,7 +550,6 @@
           </div>
         </div>
 
-        <!-- JANELA 3 -->
         <div class="tab-content">
           <div class="grid-2">
             <div class="card">
@@ -572,7 +601,6 @@
           </div>
         </div>
 
-        <!-- JANELA 4 -->
         <div class="tab-content">
           <div class="card">
             <div class="card-title"><span><i data-lucide="help-circle"></i> Guia Rápido de Uso</span></div>
@@ -622,6 +650,11 @@
         categoriasPastas = data.categoriasPastas || [];
         eventos = data.eventos || [];
         ministerios = data.ministerios || ["Louvor", "Mídia", "Infantil", "Jovens"];
+      } else {
+        membros = [];
+        categoriasPastas = [];
+        eventos = [];
+        ministerios = ["Louvor", "Mídia", "Infantil", "Jovens"];
       }
 
       document.getElementById('status').className = "status-badge status-online";
