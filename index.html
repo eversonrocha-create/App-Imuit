@@ -42,7 +42,7 @@
       margin: 0 auto;
     }
 
-    /* HEADER & STATUS BAR */
+    /* HEADER & BRANDING LOGO */
     header {
       display: flex;
       justify-content: space-between;
@@ -62,6 +62,24 @@
       display: flex;
       align-items: center;
       gap: 16px;
+    }
+
+    .brand-logo-container {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(88, 166, 255, 0.1);
+      border: 1px solid rgba(88, 166, 255, 0.3);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .brand-logo-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
 
     .brand-title h1 {
@@ -286,7 +304,11 @@
     <!-- HEADER -->
     <header>
       <div class="brand-title">
-        <i data-lucide="shield-check" style="width: 36px; height: 36px; color: var(--accent-blue);"></i>
+        <div class="brand-logo-container">
+          <!-- Tenta carregar logo.png; se falhar, exibe o ícone de fallback -->
+          <img src="logo.png" alt="Logo" onerror="this.onerror=null; this.remove(); document.getElementById('fallbackIcon').style.display='block';">
+          <i id="fallbackIcon" data-lucide="shield-check" style="width: 28px; height: 28px; color: var(--accent-blue); display: none;"></i>
+        </div>
         <div>
           <h1>App Imuit - Sistema de Presença</h1>
           <p>Sincronização em Tempo Real na Nuvem (Firebase)</p>
