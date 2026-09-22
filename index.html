@@ -3,421 +3,466 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>App Imuit - Gestão Integrada de Presença</title>
+  <title>App Imuit - Gestão de Igreja</title>
 
-  <!-- Firebase SDKs (v9 Compat) -->
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <!-- html2pdf.js para geração de PDFs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
     :root {
-      --bg-dark: #090d16;
-      --panel-bg: rgba(22, 27, 34, 0.85);
-      --panel-border: rgba(48, 54, 61, 0.8);
+      --bg-dark: #0d1117;
+      --card-bg: #161b22;
+      --border-color: #30363d;
       --accent-blue: #58a6ff;
       --accent-green: #238636;
       --accent-green-hover: #2ea043;
       --accent-red: #da3633;
-      --accent-red-hover: #f85149;
-      --text-primary: #c9d1d9;
+      --accent-yellow: #d29922;
+      --text-main: #c9d1d9;
       --text-heading: #f0f6fc;
       --text-muted: #8b949e;
-      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: radial-gradient(circle at top right, #161b22, #090d16);
-      color: var(--text-primary);
-      min-height: 100vh;
-      padding: 24px;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      padding: 15px;
     }
 
-    .app-container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
+    .container { max-width: 1200px; margin: 0 auto; }
 
-    /* HEADER & BRANDING LOGO */
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: var(--panel-bg);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--panel-border);
-      border-radius: 12px;
-      padding: 20px 28px;
-      margin-bottom: 24px;
-      box-shadow: var(--glass-shadow);
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 15px;
       flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    .brand-title {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .brand-logo-container {
-      width: 48px;
-      height: 48px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(88, 166, 255, 0.1);
-      border: 1px solid rgba(88, 166, 255, 0.3);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .brand-logo-container img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    .brand-title h1 {
-      font-size: 1.8rem;
-      color: var(--accent-blue);
-      letter-spacing: -0.5px;
-    }
-
-    .brand-title p {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .clock-display {
-      font-family: monospace;
-      font-size: 1rem;
-      color: var(--text-muted);
-      background: rgba(0,0,0,0.3);
-      padding: 6px 12px;
-      border-radius: 6px;
-      border: 1px solid var(--panel-border);
-    }
-
-    .status-badge {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: rgba(13, 17, 23, 0.6);
-      border: 1px solid var(--panel-border);
-    }
-    .status-badge.online { color: #3fb950; border-color: rgba(63, 185, 80, 0.3); }
-    .status-badge.offline { color: #f85149; border-color: rgba(248, 81, 73, 0.3); }
-
-    /* LAYOUT GRID */
-    .main-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-      margin-bottom: 24px;
-    }
-
-    @media (max-width: 900px) {
-      .main-grid { grid-template-columns: 1fr; }
-    }
-
-    /* CARDS & PANELS */
-    .panel {
-      background: var(--panel-bg);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--panel-border);
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: var(--glass-shadow);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--panel-border);
-    }
-
-    .panel-title {
-      font-size: 1.25rem;
-      color: var(--text-heading);
-      display: flex;
-      align-items: center;
       gap: 10px;
     }
 
-    /* FORM CONTROLS */
-    .form-row {
+    .logo-container {
       display: flex;
+      align-items: center;
       gap: 12px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
     }
 
-    input[type="text"], input[type="date"], select {
-      flex: 1;
-      min-width: 140px;
-      background: #0d1117;
-      border: 1px solid var(--panel-border);
-      color: var(--text-primary);
-      padding: 10px 14px;
-      border-radius: 6px;
-      font-size: 0.95rem;
-      transition: border-color 0.2s;
+    .logo-container img {
+      width: 42px;
+      height: 42px;
+      object-fit: contain;
     }
 
-    input:focus, select:focus {
-      outline: none;
-      border-color: var(--accent-blue);
-    }
+    h1 { font-size: 1.5rem; color: var(--accent-blue); }
 
-    button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 10px 16px;
-      border-radius: 6px;
-      border: none;
-      font-weight: 600;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-primary { background: var(--accent-green); color: #fff; }
-    .btn-primary:hover { background: var(--accent-green-hover); }
-    .btn-danger { background: var(--accent-red); color: #fff; }
-    .btn-danger:hover { background: var(--accent-red-hover); }
-    .btn-secondary { background: #21262d; color: var(--text-primary); border: 1px solid var(--panel-border); }
-    .btn-secondary:hover { background: #30363d; }
-
-    /* TABLES & LISTS */
-    .table-container {
-      overflow-x: auto;
-      margin-top: 10px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-    }
-
-    th, td {
-      padding: 12px 14px;
-      border-bottom: 1px solid rgba(48, 54, 61, 0.5);
-    }
-
-    th {
-      color: var(--text-muted);
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    tr:hover td {
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    /* FOLDER CARDS */
-    .folder-card {
-      background: #0d1117;
-      border: 1px solid var(--panel-border);
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-
-    .folder-title-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .member-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(48, 54, 61, 0.3);
-    }
-
-    .member-item:last-child { border-bottom: none; }
-
-    /* BADGES */
-    .badge {
+    .status-badge {
       padding: 4px 10px;
       border-radius: 12px;
       font-size: 0.8rem;
-      font-weight: 700;
+      font-weight: bold;
+      background: #21262d;
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    .badge-success { background: rgba(63, 185, 80, 0.15); color: #3fb950; }
-    .badge-warning { background: rgba(210, 153, 34, 0.15); color: #d29922; }
-    .badge-danger { background: rgba(248, 81, 73, 0.15); color: #f85149; }
+    .status-online { color: #3fb950; border-color: rgba(63, 185, 80, 0.4); }
+    .status-offline { color: #f85149; border-color: rgba(248, 81, 73, 0.4); }
 
-    /* MODAL WINDOWS */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(4px);
-      display: none;
+    /* NAVIGATION TABS */
+    .tabs-nav {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 20px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      padding: 10px 18px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover { color: var(--text-heading); }
+    .tab-btn.active {
+      color: var(--accent-blue);
+      border-bottom-color: var(--accent-blue);
+      background: rgba(88, 166, 255, 0.05);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* CARDS & PANELS */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      color: var(--text-heading);
+      margin-bottom: 15px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* FORMS & INPUTS */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    label { font-size: 0.85rem; color: var(--text-muted); }
+
+    input, select, button, textarea {
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-size: 0.9rem;
+    }
+
+    input:focus, select:focus { outline: none; border-color: var(--accent-blue); }
+
+    button {
+      background: var(--accent-green);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      z-index: 1000;
+      gap: 6px;
     }
 
-    .modal-content {
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 12px;
-      padding: 24px;
-      width: 90%;
-      max-width: 500px;
-      box-shadow: var(--glass-shadow);
+    button:hover { background: var(--accent-green-hover); }
+    button.btn-danger { background: var(--accent-red); }
+    button.btn-secondary { background: #21262d; color: var(--text-main); border: 1px solid var(--border-color); }
+    button.btn-secondary:hover { background: #30363d; }
+
+    /* TABLES */
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--border-color); }
+    th { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; }
+
+    .tag {
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      display: inline-block;
     }
+    .tag-blue { background: rgba(88, 166, 255, 0.2); color: var(--accent-blue); }
+    .tag-green { background: rgba(63, 185, 80, 0.2); color: #3fb950; }
+
+    /* CALENDAR STYLES */
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .calendar-day-head {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      padding: 6px;
+    }
+
+    .calendar-day {
+      min-height: 80px;
+      background: var(--bg-dark);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 6px;
+      font-size: 0.8rem;
+    }
+
+    .event-item {
+      background: rgba(88, 166, 255, 0.15);
+      color: var(--accent-blue);
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      margin-top: 4px;
+      word-break: break-all;
+    }
+
+    /* PDF EXPORT STYLES (Print Area) */
+    .pdf-template {
+      background: #ffffff;
+      color: #000000;
+      padding: 30px;
+      border-radius: 4px;
+      font-family: Arial, sans-serif;
+    }
+    .pdf-header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+    .pdf-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    .pdf-table th, .pdf-table td { border: 1px solid #ddd; padding: 8px; text-align: left; color: #000; }
+    .pdf-table th { background: #f2f2f2; }
   </style>
 </head>
 <body>
 
-  <div class="app-container">
-    <!-- HEADER -->
+  <div class="container">
     <header>
-      <div class="brand-title">
-        <div class="brand-logo-container">
-          <!-- Tenta carregar logo.png; se falhar, exibe o ícone de fallback -->
-          <img src="logo.png" alt="Logo" onerror="this.onerror=null; this.remove(); document.getElementById('fallbackIcon').style.display='block';">
-          <i id="fallbackIcon" data-lucide="shield-check" style="width: 28px; height: 28px; color: var(--accent-blue); display: none;"></i>
-        </div>
+      <div class="logo-container">
+        <img src="logo.png" alt="Logo" onerror="this.onerror=null; this.remove(); document.getElementById('altIcon').style.display='block';">
+        <i id="altIcon" data-lucide="church" style="width: 32px; height: 32px; color: var(--accent-blue); display: none;"></i>
         <div>
-          <h1>App Imuit - Sistema de Presença</h1>
-          <p>Sincronização em Tempo Real na Nuvem (Firebase)</p>
+          <h1>App Imuit - Gestão de Igreja</h1>
+          <p style="font-size: 0.8rem; color: var(--text-muted);">Sincronização em Tempo Real</p>
         </div>
       </div>
-      <div class="header-actions">
-        <div class="clock-display" id="clock">00:00:00</div>
-        <div id="statusBadge" class="status-badge offline">
-          <i data-lucide="wifi-off" style="width: 14px; height: 14px;"></i>
-          <span id="statusText">Conectando...</span>
-        </div>
+      <div id="status" class="status-badge status-offline">
+        <i data-lucide="wifi-off" style="width: 14px;"></i> Conectando ao Firebase...
       </div>
     </header>
 
-    <!-- GRID PRINCIPAL -->
-    <div class="main-grid">
-      <!-- PAINEL DE MEMBROS -->
-      <div class="panel">
-        <div class="panel-header">
-          <h2 class="panel-title"><i data-lucide="users"></i> Gestão de Membros</h2>
-          <button class="btn-secondary" onclick="exportarCSV()"><i data-lucide="download"></i> CSV</button>
+    <!-- ABA NAVEGAÇÃO -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('tabChamada', this)"><i data-lucide="clipboard-check"></i> 1. Lista de Presença</button>
+      <button class="tab-btn" onclick="switchTab('tabCalendario', this)"><i data-lucide="calendar"></i> 2. Calendário de Eventos</button>
+      <button class="tab-btn" onclick="switchTab('tabMembros', this)"><i data-lucide="users"></i> 3. Membros e Ministérios</button>
+      <button class="tab-btn" onclick="switchTab('tabTutorial', this)"><i data-lucide="help-circle"></i> 4. Tutorial de Uso</button>
+    </div>
+
+    <!-- ==================== ABA 1: PRESENÇA & PASTAS ==================== -->
+    <div id="tabChamada" class="tab-content active">
+      <div class="grid-2">
+        <div class="card">
+          <h2 class="card-title"><i data-lucide="file-text"></i> Nova Lista de Chamada</h2>
+          <div class="form-group">
+            <label>Nome da Pasta / Culto / Evento:</label>
+            <input type="text" id="chamadaTitulo" placeholder="Ex: Culto de Domingo - 19h">
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+              <label>Data:</label>
+              <input type="date" id="chamadaData">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label>Importar Por Ministério:</label>
+              <select id="filtroMinChamada" onchange="carregarMembrosNaChamada()">
+                <option value="TODOS">Todos os Membros</option>
+              </select>
+            </div>
+          </div>
+
+          <h3 style="font-size: 0.9rem; margin: 15px 0 10px 0; color: var(--text-muted);">Marcar Presença:</h3>
+          <div id="listaPresencaInput">
+            <p style="color: var(--text-muted);">Cadastre membros para realizar a chamada.</p>
+          </div>
+
+          <button onclick="salvarPastaChamada()" style="width: 100%; margin-top: 15px;"><i data-lucide="save"></i> Salvar e Guardar na Pasta</button>
         </div>
 
-        <div class="form-row">
-          <input type="text" id="nomeMembro" placeholder="Nome do Membro">
-          <input type="text" id="cargoMembro" placeholder="Cargo / Função">
-          <button class="btn-primary" onclick="adicionarMembro()"><i data-lucide="user-plus"></i> Add</button>
-        </div>
-
-        <div class="form-row">
-          <input type="text" id="buscaMembro" placeholder="Buscar membro na lista..." oninput="filtrarMembros()">
-        </div>
-
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>Cargo</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody id="tabelaMembros">
-              <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Carregando nuvem...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- PAINEL DE CHAMADAS / PASTAS -->
-      <div class="panel">
-        <div class="panel-header">
-          <h2 class="panel-title"><i data-lucide="folder-check"></i> Pastas de Chamada</h2>
-        </div>
-
-        <div class="form-row">
-          <input type="text" id="nomePasta" placeholder="Nome do Culto / Evento">
-          <input type="date" id="dataPasta">
-          <button class="btn-primary" onclick="criarPasta()"><i data-lucide="folder-plus"></i> Criar</button>
-        </div>
-
-        <div id="listaPastas" style="margin-top: 10px;">
-          <p style="color: var(--text-muted); text-align: center;">Nenhuma pasta cadastrada.</p>
+        <div class="card">
+          <h2 class="card-title"><i data-lucide="folder"></i> Pastas Salvas e Exportação PDF</h2>
+          <div id="listaPastasSalvas">
+            <p style="color: var(--text-muted);">Nenhuma chamada salva nas pastas.</p>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- ESTATÍSTICAS E RELATÓRIO GERAL -->
-    <div class="panel">
-      <div class="panel-header">
-        <h2 class="panel-title"><i data-lucide="bar-chart-3"></i> Frequência & Estatísticas Gerais</h2>
-        <button class="btn-secondary" onclick="abrirModalBackup()"><i data-lucide="database"></i> Backup JSON</button>
+    <!-- ==================== ABA 2: CALENDÁRIO ==================== -->
+    <div id="tabCalendario" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <h2 class="card-title"><i data-lucide="calendar-plus"></i> Agendar Evento no Calendário</h2>
+          <div class="form-group">
+            <label>Título do Evento:</label>
+            <input type="text" id="evtTitulo" placeholder="Ex: Culto de Celebração">
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+              <label>Data Inicial:</label>
+              <input type="date" id="evtData">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label>Horário:</label>
+              <input type="time" id="evtHora" value="19:00">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Recorrência (Repetição):</label>
+            <select id="evtRecorrencia">
+              <option value="UNICO">Evento Único (Sem repetição)</option>
+              <option value="SEMANAL">Repetir Toda Semana (Ex: Todo Domingo)</option>
+              <option value="MENSAL">Repetir Todo Mês</option>
+            </select>
+          </div>
+          <div class="form-group" id="boxQtdRecorrencia">
+            <label>Quantidade de Semanas/Meses a criar:</label>
+            <input type="number" id="evtQtd" value="4" min="1" max="52">
+          </div>
+          <button onclick="salvarEvento()"><i data-lucide="calendar-check"></i> Agendar Evento(s)</button>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title"><i data-lucide="list"></i> Próximos Eventos & Aniversários</h2>
+          <div id="listaEventosProximos">
+            <p style="color: var(--text-muted);">Nenhum evento futuro agendado.</p>
+          </div>
+        </div>
       </div>
 
-      <div class="table-container">
+      <div class="card">
+        <h2 class="card-title"><i data-lucide="calendar"></i> Visualização Mensal</h2>
+        <div class="calendar-grid">
+          <div class="calendar-day-head">Dom</div>
+          <div class="calendar-day-head">Seg</div>
+          <div class="calendar-day-head">Ter</div>
+          <div class="calendar-day-head">Qua</div>
+          <div class="calendar-day-head">Qui</div>
+          <div class="calendar-day-head">Sex</div>
+          <div class="calendar-day-head">Sáb</div>
+        </div>
+        <div class="calendar-grid" id="gridCalendarioDias"></div>
+      </div>
+    </div>
+
+    <!-- ==================== ABA 3: MEMBROS & MINISTÉRIOS ==================== -->
+    <div id="tabMembros" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <h2 class="card-title"><i data-lucide="user-plus"></i> Cadastrar Membro / Visitante</h2>
+          <div class="form-group">
+            <label>Nome Completo:</label>
+            <input type="text" id="memNome" placeholder="Ex: João da Silva">
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+              <label>Apelido (se houver):</label>
+              <input type="text" id="memApelido" placeholder="Ex: Joãozinho">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label>Data de Nascimento:</label>
+              <input type="date" id="memNascimento">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Número de Contato (Com DDD):</label>
+            <input type="text" id="memFone" placeholder="(00) 00000-0000" oninput="mascaraTelefone(this)">
+          </div>
+          <div class="form-group">
+            <label>Ministérios (Selecione 1 ou mais, ou deixe em branco para Visitante):</label>
+            <div id="boxMinisteriosCheck">
+              <!-- Renderizado Dinamicamente -->
+            </div>
+          </div>
+          <button onclick="salvarMembro()"><i data-lucide="check-circle"></i> Cadastrar Membro</button>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title"><i data-lucide="briefcase"></i> Gerenciar Ministérios</h2>
+          <div class="form-row">
+            <input type="text" id="nomeMin" placeholder="Nome do Ministério (ex: Louvor)">
+            <button onclick="adicionarMinisterio()"><i data-lucide="plus"></i> Criar</button>
+          </div>
+          <h3 style="font-size: 0.9rem; margin: 15px 0 10px 0; color: var(--text-muted);">Ministérios Criados:</h3>
+          <div id="listaMinisterios"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title"><i data-lucide="users"></i> Lista Geral de Membros e Ficha Individual</h2>
         <table>
           <thead>
             <tr>
-              <th>Membro</th>
-              <th>Cargo</th>
-              <th>Presenças / Total</th>
-              <th>Frequência</th>
+              <th>Nome / Apelido</th>
+              <th>Contato</th>
+              <th>Aniversário</th>
+              <th>Ministérios</th>
+              <th>Ações</th>
             </tr>
           </thead>
-          <tbody id="tabelaRelatorio">
-            <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Sem dados para estatísticas.</td></tr>
-          </tbody>
+          <tbody id="tabelaGeralMembros"></tbody>
         </table>
       </div>
     </div>
-  </div>
 
-  <!-- MODAL DE BACKUP JSON -->
-  <div id="modalBackup" class="modal-overlay">
-    <div class="modal-content">
-      <h3 style="margin-bottom: 15px; color: var(--text-heading);">Backup & Restauração JSON</h3>
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">
-        Copie o texto de backup ou cole um arquivo JSON válido para restaurar os dados manualmente na nuvem.
-      </p>
-      <textarea id="jsonArea" style="width: 100%; height: 150px; background: #0d1117; color: var(--text-primary); border: 1px solid var(--panel-border); border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.8rem; margin-bottom: 15px;"></textarea>
-      <div style="display: flex; justify-content: flex-end; gap: 10px;">
-        <button class="btn-secondary" onclick="fecharModalBackup()">Fechar</button>
-        <button class="btn-primary" onclick="importarJSON()">Restaurar Dados</button>
+    <!-- ==================== ABA 4: TUTORIAL ==================== -->
+    <div id="tabTutorial" class="tab-content">
+      <div class="card">
+        <h2 class="card-title"><i data-lucide="help-circle"></i> Guia Rápido de Uso do Aplicativo</h2>
+        <div style="line-height: 1.6; color: var(--text-main);">
+          <p><strong>1. Lista de Presença:</strong></p>
+          <ul style="margin-left: 20px; margin-bottom: 15px;">
+            <li>Digite o nome do evento/culto e escolha a data.</li>
+            <li>Você pode filtrar a lista por um Ministério específico (ex: marcar presença apenas do grupo de Louvor).</li>
+            <li>Marque cada membro como Presente, Ausente ou Justificado e clique em <b>Salvar</b>.</li>
+            <li>As chamadas salvas ficam guardadas nas <b>Pastas Salvas</b>. Clique em <b>Gerar PDF</b> para gerar o relatório impresso com gráfico e status!</li>
+          </ul>
+
+          <p><strong>2. Calendário e Agendamentos Recorrentes:</strong></p>
+          <ul style="margin-left: 20px; margin-bottom: 15px;">
+            <li>Para agendar eventos repetidos (ex: todos os cultos de domingo às 19h), selecione a opção <b>Repetir Toda Semana</b>, informe a quantidade de semanas e clique em agendar!</li>
+            <li>Os aniversários cadastrados na aba de membros aparecem automaticamente no calendário.</li>
+            <li>Você pode cancelar um evento único ou apagar toda a série de eventos futuros se necessário.</li>
+          </ul>
+
+          <p><strong>3. Membros e Ministérios:</strong></p>
+          <ul style="margin-left: 20px; margin-bottom: 15px;">
+            <li>Cadastre os membros com Nome, Apelido, Nascimento e Telefone.</li>
+            <li>Ao digitar o telefone, o sistema formata o DDD e hífen automaticamente `(XX) XXXXX-XXXX`.</li>
+            <li>Para os visitantes, basta não selecionar nenhum ministério.</li>
+            <li>Na tabela de membros, você pode clicar em <b>Imprimir Ficha PDF</b> para gerar uma ficha formal do membro.</li>
+          </ul>
+        </div>
       </div>
     </div>
+
   </div>
 
+  <!-- CONTAINER OCULTO PARA IMPRESSÃO DE PDF -->
+  <div id="pdfPrintArea" style="display: none;"></div>
+
   <script>
-    // Configurações do Firebase Realtime Database para o projeto app-imuit-fabf6
+    // CONFIGURAÇÃO DO FIREBASE (Projeto App Imuit)
     const firebaseConfig = {
       apiKey: "AIzaSyCIeKq6dh_MRX7Fju1E9apbfroKDs8KfXk",
       authDomain: "app-imuit-fabf6.firebaseapp.com",
@@ -428,259 +473,342 @@
       appId: "1:881321029737:web:4feee85a1860945fc543d5"
     };
 
-    // Inicialização do Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // ESTADO DA APLICAÇÃO
     let membros = [];
-    let pastas = [];
+    let ministerios = ["Louvor", "Infantil", "Jovens", "Mídia"];
+    let eventos = [];
+    let pastasChamada = [];
 
-    // RELÓGIO DIGITAL DENTRO DO HUD
-    setInterval(() => {
-      const now = new Date();
-      document.getElementById('clock').innerText = now.toLocaleTimeString();
-    }, 1000);
-
-    // SINCRONIZAÇÃO EM TEMPO REAL COM A NUVEM
-    db.ref('app_data').on('value', (snapshot) => {
+    // ESCUTA EM TEMPO REAL NO FIREBASE
+    db.ref('app_imuit_data').on('value', (snapshot) => {
       const data = snapshot.val();
       if (data) {
         membros = data.membros || [];
-        pastas = data.pastas || [];
-      } else {
-        membros = [];
-        pastas = [];
+        ministerios = data.ministerios || ["Louvor", "Infantil", "Jovens", "Mídia"];
+        eventos = data.eventos || [];
+        pastasChamada = data.pastasChamada || [];
       }
 
-      const badge = document.getElementById('statusBadge');
-      const text = document.getElementById('statusText');
-      
-      badge.className = "status-badge online";
-      text.innerText = "Nuvem Ativa";
-      badge.innerHTML = `<i data-lucide="wifi" style="width: 14px; height: 14px;"></i> Nuvem Ativa`;
+      document.getElementById('status').className = "status-badge status-online";
+      document.getElementById('status').innerHTML = `<i data-lucide="wifi" style="width:14px;"></i> Nuvem Sincronizada`;
       lucide.createIcons();
 
-      renderMembros();
-      renderPastas();
-      renderRelatorio();
-    }, (error) => {
-      const badge = document.getElementById('statusBadge');
-      badge.className = "status-badge offline";
-      badge.innerHTML = `<i data-lucide="wifi-off" style="width: 14px; height: 14px;"></i> Erro Conexão`;
-      lucide.createIcons();
+      renderTudo();
     });
 
-    // FUNÇÃO DE GRAVAÇÃO
     function salvarDados() {
-      db.ref('app_data').set({
-        membros: membros,
-        pastas: pastas,
+      db.ref('app_imuit_data').set({
+        membros, ministerios, eventos, pastasChamada,
         ultimaAtualizacao: new Date().toISOString()
       });
     }
 
-    // GESTÃO DE MEMBROS
-    function adicionarMembro() {
-      const nomeInput = document.getElementById('nomeMembro');
-      const cargoInput = document.getElementById('cargoMembro');
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
+    }
 
-      if (!nomeInput.value.trim()) return alert("Digite o nome do membro!");
+    // ==================== MÁSCARA AUTOMÁTICA DE TELEFONE ====================
+    function mascaraTelefone(input) {
+      let v = input.value.replace(/\D/g, "");
+      if (v.length > 11) v = v.substring(0, 11);
+      if (v.length > 10) {
+        v = v.replace(/^(\d\d)(\d\d\d\d\d)(\d\d\d\d)/, "($1) $2-$3");
+      } else if (v.length > 6) {
+        v = v.replace(/^(\d\d)(\d\d\d\d)(\d\d\d\d)/, "($1) $2-$3");
+      } else if (v.length > 2) {
+        v = v.replace(/^(\d\d)/, "($1) ");
+      }
+      input.value = v;
+    }
 
-      membros.push({
-        id: Date.now(),
-        nome: nomeInput.value.trim(),
-        cargo: cargoInput.value.trim() || 'Membro'
-      });
+    // ==================== MEMBROS & MINISTÉRIOS ====================
+    function salvarMembro() {
+      const nome = document.getElementById('memNome').value.trim();
+      const apelido = document.getElementById('memApelido').value.trim();
+      const nascimento = document.getElementById('memNascimento').value;
+      const fone = document.getElementById('memFone').value.trim();
 
-      nomeInput.value = '';
-      cargoInput.value = '';
+      if (!nome) return alert("Informe o nome do membro!");
+
+      // Coleta ministérios marcados
+      const minSel = [];
+      document.querySelectorAll('.min-check:checked').forEach(c => minSel.push(c.value));
+
+      membros.push({ id: Date.now(), nome, apelido, nascimento, fone, ministerios: minSel });
+
+      // Se tem data de nascimento, agenda o aniversário no calendário
+      if (nascimento) {
+        const diaMes = nascimento.substring(5);
+        const anoAtual = new Date().getFullYear();
+        eventos.push({
+          id: Date.now() + 1,
+          titulo: `🎂 Aniversário: ${nome}`,
+          data: `${anoAtual}-${diaMes}`,
+          hora: "00:00",
+          tipo: "ANIVERSARIO"
+        });
+      }
+
+      document.getElementById('memNome').value = '';
+      document.getElementById('memApelido').value = '';
+      document.getElementById('memNascimento').value = '';
+      document.getElementById('memFone').value = '';
+
+      salvarDados();
+      alert("Membro cadastrado com sucesso!");
+    }
+
+    function adicionarMinisterio() {
+      const nome = document.getElementById('nomeMin').value.trim();
+      if (!nome) return alert("Informe o nome do ministério!");
+      if (!ministerios.includes(nome)) ministerios.push(nome);
+      document.getElementById('nomeMin').value = '';
       salvarDados();
     }
 
+    function removerMinisterio(nome) {
+      if (confirm(`Excluir o ministério "${nome}"?`)) {
+        ministerios = ministerios.filter(m => m !== nome);
+        salvarDados();
+      }
+    }
+
     function removerMembro(id) {
-      if (confirm("Remover este membro do sistema?")) {
+      if (confirm("Deseja apagar este membro?")) {
         membros = membros.filter(m => m.id !== id);
         salvarDados();
       }
     }
 
-    function renderMembros(listaFiltrada = null) {
-      const tabela = document.getElementById('tabelaMembros');
-      const lista = listaFiltrada || membros;
+    // ==================== CALENDÁRIO & EVENTOS RECORRENTES ====================
+    function salvarEvento() {
+      const titulo = document.getElementById('evtTitulo').value.trim();
+      const dataStr = document.getElementById('evtData').value;
+      const hora = document.getElementById('evtHora').value;
+      const recorrencia = document.getElementById('evtRecorrencia').value;
+      const qtd = parseInt(document.getElementById('evtQtd').value) || 1;
 
-      if (lista.length === 0) {
-        tabela.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Nenhum membro encontrado.</td></tr>';
+      if (!titulo || !dataStr) return alert("Informe título e data!");
+
+      const grupoRecorrenciaId = recorrencia !== 'UNICO' ? Date.now() : null;
+
+      let dataBase = new Date(dataStr + 'T12:00:00');
+
+      for (let i = 0; i < (recorrencia === 'UNICO' ? 1 : qtd); i++) {
+        let d = new Date(dataBase);
+        if (recorrencia === 'SEMANAL') d.setDate(d.getDate() + (i * 7));
+        if (recorrencia === 'MENSAL') d.setMonth(d.getMonth() + i);
+
+        eventos.push({
+          id: Date.now() + i,
+          grupoId: grupoRecorrenciaId,
+          titulo,
+          data: d.toISOString().split('T')[0],
+          hora,
+          tipo: "EVENTO"
+        });
+      }
+
+      document.getElementById('evtTitulo').value = '';
+      salvarDados();
+      alert("Evento(s) agendado(s)!");
+    }
+
+    function cancelarEvento(id, cancelarFuturos = false) {
+      const evt = eventos.find(e => e.id === id);
+      if (!evt) return;
+
+      if (cancelarFuturos && evt.grupoId) {
+        if (confirm("Cancelar este e todos os eventos futuros desta série?")) {
+          eventos = eventos.filter(e => !(e.grupoId === evt.grupoId && e.data >= evt.data));
+          salvarDados();
+        }
+      } else {
+        if (confirm("Cancelar apenas este evento?")) {
+          eventos = eventos.filter(e => e.id !== id);
+          salvarDados();
+        }
+      }
+    }
+
+    // ==================== LISTA DE PRESENÇA & PASTAS ====================
+    function carregarMembrosNaChamada() {
+      const box = document.getElementById('listaPresencaInput');
+      const minFiltro = document.getElementById('filtroMinChamada').value;
+
+      let memFiltrados = membros;
+      if (minFiltro !== 'TODOS') {
+        memFiltrados = membros.filter(m => m.ministerios && m.ministerios.includes(minFiltro));
+      }
+
+      if (memFiltrados.length === 0) {
+        box.innerHTML = '<p style="color: var(--text-muted);">Nenhum membro encontrado para este filtro.</p>';
         return;
       }
 
-      tabela.innerHTML = lista.map(m => `
+      box.innerHTML = memFiltrados.map(m => `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+          <span><strong>${m.nome}</strong> ${m.apelido ? `(${m.apelido})` : ''}</span>
+          <select id="status_${m.id}">
+            <option value="PRESENTE">✓ Presente</option>
+            <option value="AUSENTE">✗ Ausente</option>
+            <option value="JUSTIFICADO">🟡 Justificado</option>
+          </select>
+        </div>
+      `).join('');
+    }
+
+    function salvarPastaChamada() {
+      const titulo = document.getElementById('chamadaTitulo').value.trim();
+      const data = document.getElementById('chamadaData').value;
+
+      if (!titulo || !data) return alert("Informe título e data para a chamada!");
+
+      const registros = [];
+      membros.forEach(m => {
+        const el = document.getElementById(`status_${m.id}`);
+        if (el) {
+          registros.push({ membroId: m.id, nome: m.nome, status: el.value });
+        }
+      });
+
+      pastasChamada.push({ id: Date.now(), titulo, data, registros });
+      salvarDados();
+      alert("Lista de presença salva com sucesso na pasta!");
+    }
+
+    // ==================== GERAÇÃO DE PDFS ====================
+    function gerarPDFPasta(pastaId) {
+      const pasta = pastasChamada.find(p => p.id === pastaId);
+      if (!pasta) return;
+
+      const presentes = pasta.registros.filter(r => r.status === 'PRESENTE').length;
+      const ausentes = pasta.registros.filter(r => r.status === 'AUSENTE').length;
+      const justificados = pasta.registros.filter(r => r.status === 'JUSTIFICADO').length;
+      const total = pasta.registros.length;
+      const pct = total > 0 ? Math.round((presentes / total) * 100) : 0;
+
+      const area = document.getElementById('pdfPrintArea');
+      area.innerHTML = `
+        <div class="pdf-template">
+          <div class="pdf-header">
+            <h2>RELATÓRIO DE PRESENÇA - APP IMUIT</h2>
+            <h3>${pasta.titulo} - Data: ${pasta.data}</h3>
+          </div>
+          <p><strong>Total de Registrados:</strong> ${total} | <strong>Presentes:</strong> ${presentes} (${pct}%) | <strong>Ausentes:</strong> ${ausentes} | <strong>Justificados:</strong> ${justificados}</p>
+          
+          <table class="pdf-table">
+            <thead>
+              <tr>
+                <th>Nome do Membro</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${pasta.registros.map(r => `
+                <tr>
+                  <td>${r.nome}</td>
+                  <td><strong>${r.status}</strong></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      html2pdf().from(area).save(`Chamada_${pasta.titulo.replace(/\s+/g, '_')}.pdf`);
+    }
+
+    function gerarPDFFichaMembro(membroId) {
+      const m = membros.find(x => x.id === membroId);
+      if (!m) return;
+
+      const area = document.getElementById('pdfPrintArea');
+      area.innerHTML = `
+        <div class="pdf-template">
+          <div class="pdf-header">
+            <h2>FICHA DE CADASTRO DO MEMBRO</h2>
+            <h3>${m.nome}</h3>
+          </div>
+          <p><strong>Apelido:</strong> ${m.apelido || 'Nenhum'}</p>
+          <p><strong>Data de Nascimento:</strong> ${m.nascimento || 'Não informada'}</p>
+          <p><strong>Telefone / Contato:</strong> ${m.fone || 'Não informado'}</p>
+          <p><strong>Ministérios:</strong> ${m.ministerios && m.ministerios.length > 0 ? m.ministerios.join(', ') : 'Visitante / Sem Ministério'}</p>
+        </div>
+      `;
+
+      html2pdf().from(area).save(`Ficha_${m.nome.replace(/\s+/g, '_')}.pdf`);
+    }
+
+    // ==================== RENDERIZADORES DA INTERFACE ====================
+    function renderTudo() {
+      // 1. Select de Filtro de Ministérios na Chamada
+      const selMin = document.getElementById('filtroMinChamada');
+      selMin.innerHTML = '<option value="TODOS">Todos os Membros</option>' + ministerios.map(m => `<option value="${m}">${m}</option>`).join('');
+
+      // 2. Checkbox de Ministérios no Cadastro de Membros
+      const boxMin = document.getElementById('boxMinisteriosCheck');
+      boxMin.innerHTML = ministerios.map(m => `
+        <label style="display:inline-flex; align-items:center; gap:4px; margin-right:12px;">
+          <input type="checkbox" class="min-check" value="${m}"> ${m}
+        </label>
+      `).join('');
+
+      // 3. Tabela Geral de Membros
+      const tbMembros = document.getElementById('tabelaGeralMembros');
+      tbMembros.innerHTML = membros.map(m => `
         <tr>
-          <td><strong>${m.nome}</strong></td>
-          <td><span class="badge badge-warning">${m.cargo}</span></td>
+          <td><strong>${m.nome}</strong> ${m.apelido ? `<br><small style="color:var(--text-muted)">(${m.apelido})</small>` : ''}</td>
+          <td>${m.fone || '-'}</td>
+          <td>${m.nascimento || '-'}</td>
+          <td>${m.ministerios && m.ministerios.length > 0 ? m.ministerios.map(x => `<span class="tag tag-blue">${x}</span>`).join(' ') : '<span class="tag">Visitante</span>'}</td>
           <td>
-            <button class="btn-danger" style="padding: 4px 8px; font-size: 0.8rem;" onclick="removerMembro(${m.id})">
-              <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i>
-            </button>
+            <button class="btn-secondary" onclick="gerarPDFFichaMembro(${m.id})"><i data-lucide="file-text"></i> PDF Ficha</button>
+            <button class="btn-danger" onclick="removerMembro(${m.id})"><i data-lucide="trash"></i></button>
           </td>
         </tr>
       `).join('');
-      lucide.createIcons();
-    }
 
-    function filtrarMembros() {
-      const busca = document.getElementById('buscaMembro').value.toLowerCase();
-      const filtrados = membros.filter(m => m.nome.toLowerCase().includes(busca) || m.cargo.toLowerCase().includes(busca));
-      renderMembros(filtrados);
-    }
+      // 4. Lista de Ministérios
+      document.getElementById('listaMinisterios').innerHTML = ministerios.map(m => `
+        <span class="tag tag-green" style="margin-right:6px; font-size:0.85rem; padding:6px 10px;">
+          ${m} <i data-lucide="x" style="width:12px; cursor:pointer;" onclick="removerMinisterio('${m}')"></i>
+        </span>
+      `).join('');
 
-    // GESTÃO DE PASTAS & PRESENÇAS
-    function criarPasta() {
-      const nomeInput = document.getElementById('nomePasta');
-      const dataInput = document.getElementById('dataPasta');
-
-      if (!nomeInput.value.trim()) return alert("Informe o nome do evento/pasta!");
-
-      pastas.push({
-        id: Date.now(),
-        nome: nomeInput.value.trim(),
-        data: dataInput.value || new Date().toISOString().split('T')[0],
-        presencas: {}
-      });
-
-      nomeInput.value = '';
-      dataInput.value = '';
-      salvarDados();
-    }
-
-    function alternarPresenca(pastaId, membroId) {
-      const pasta = pastas.find(p => p.id === pastaId);
-      if (pasta) {
-        if (!pasta.presencas) pasta.presencas = {};
-        pasta.presencas[membroId] = !pasta.presencas[membroId];
-        salvarDados();
-      }
-    }
-
-    function removerPasta(id) {
-      if (confirm("Apagar esta pasta de chamada?")) {
-        pastas = pastas.filter(p => p.id !== id);
-        salvarDados();
-      }
-    }
-
-    function renderPastas() {
-      const lista = document.getElementById('listaPastas');
-      if (pastas.length === 0) {
-        lista.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 20px;">Nenhuma pasta cadastrada.</p>';
-        return;
-      }
-
-      lista.innerHTML = pastas.map(p => {
-        const itensMembros = membros.map(m => {
-          const presente = p.presencas && p.presencas[m.id];
-          return `
-            <div class="member-item">
-              <span>${m.nome} <small style="color: var(--text-muted);">(${m.cargo})</small></span>
-              <button class="${presente ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 10px; font-size: 0.8rem;" onclick="alternarPresenca(${p.id}, ${m.id})">
-                ${presente ? '<i data-lucide="check" style="width: 12px; height: 12px;"></i> Presente' : '<i data-lucide="x" style="width: 12px; height: 12px;"></i> Ausente'}
-              </button>
-            </div>
-          `;
-        }).join('');
-
-        return `
-          <div class="folder-card">
-            <div class="folder-title-bar">
-              <strong><i data-lucide="folder"></i> ${p.nome} <small style="color: var(--text-muted);">(${p.data})</small></strong>
-              <button class="btn-danger" style="padding: 2px 6px; font-size: 0.75rem;" onclick="removerPasta(${p.id})">Excluir</button>
-            </div>
-            ${membros.length > 0 ? itensMembros : '<p style="font-size: 0.85em; color: var(--text-muted);">Cadastre membros para realizar a chamada.</p>'}
+      // 5. Pastas Salvas
+      document.getElementById('listaPastasSalvas').innerHTML = pastasChamada.map(p => `
+        <div style="background:var(--bg-dark); border:1px solid var(--border-color); padding:12px; border-radius:6px; margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong>📁 ${p.titulo} (${p.data})</strong>
+            <button class="btn-secondary" onclick="gerarPDFPasta(${p.id})"><i data-lucide="printer"></i> Gerar PDF</button>
           </div>
-        `;
-      }).join('');
+        </div>
+      `).join('');
+
+      // 6. Calendário e Próximos Eventos
+      document.getElementById('listaEventosProximos').innerHTML = eventos.sort((a,b) => a.data.localeCompare(b.data)).map(e => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border-color);">
+          <span><strong>${e.data} às ${e.hora}</strong> - ${e.titulo}</span>
+          ${e.tipo === 'EVENTO' ? `
+            <button class="btn-danger" style="padding:2px 6px; font-size:0.75rem;" onclick="cancelarEvento(${e.id}, true)">Cancelar Todos Futuros</button>
+          ` : ''}
+        </div>
+      `).join('');
+
+      carregarMembrosNaChamada();
       lucide.createIcons();
     }
 
-    // RELATÓRIOS E EXPORTAÇÃO
-    function renderRelatorio() {
-      const tabela = document.getElementById('tabelaRelatorio');
-      if (membros.length === 0) {
-        tabela.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Sem dados.</td></tr>';
-        return;
-      }
-
-      const totalPastas = pastas.length;
-
-      tabela.innerHTML = membros.map(m => {
-        let presencasCount = 0;
-        pastas.forEach(p => {
-          if (p.presencas && p.presencas[m.id]) presencasCount++;
-        });
-
-        const pct = totalPastas > 0 ? Math.round((presencasCount / totalPastas) * 100) : 0;
-        const badgeClass = pct >= 75 ? 'badge-success' : (pct >= 50 ? 'badge-warning' : 'badge-danger');
-
-        return `
-          <tr>
-            <td><strong>${m.nome}</strong></td>
-            <td>${m.cargo}</td>
-            <td>${presencasCount} / ${totalPastas}</td>
-            <td><span class="badge ${badgeClass}">${pct}%</span></td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function exportarCSV() {
-      let csv = 'Nome,Cargo,Presencas,TotalPastas,Porcentagem\n';
-      const totalPastas = pastas.length;
-
-      membros.forEach(m => {
-        let presencasCount = 0;
-        pastas.forEach(p => {
-          if (p.presencas && p.presencas[m.id]) presencasCount++;
-        });
-        const pct = totalPastas > 0 ? Math.round((presencasCount / totalPastas) * 100) : 0;
-        csv += `"${m.nome}","${m.cargo}",${presencasCount},${totalPastas},${pct}%\n`;
-      });
-
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Relatorio_Presenca_Imuit_${new Date().toISOString().split('T')[0]}.csv`;
-      a.click();
-    }
-
-    // MODAL DE BACKUP JSON
-    function abrirModalBackup() {
-      document.getElementById('jsonArea').value = JSON.stringify({ membros, pastas }, null, 2);
-      document.getElementById('modalBackup').style.display = 'flex';
-    }
-
-    function fecharModalBackup() {
-      document.getElementById('modalBackup').style.display = 'none';
-    }
-
-    function importarJSON() {
-      try {
-        const data = JSON.parse(document.getElementById('jsonArea').value);
-        if (data.membros && data.pastas) {
-          membros = data.membros;
-          pastas = data.pastas;
-          salvarDados();
-          fecharModalBackup();
-          alert("Dados restaurados e sincronizados com a nuvem!");
-        } else {
-          alert("Formato de JSON inválido!");
-        }
-      } catch (e) {
-        alert("Erro ao ler o JSON!");
-      }
-    }
-
-    // Inicializar ícones do Lucide
-    lucide.createIcons();
+    // DATA PADRÃO
+    document.getElementById('chamadaData').value = new Date().toISOString().split('T')[0];
+    document.getElementById('evtData').value = new Date().toISOString().split('T')[0];
   </script>
 </body>
 </html>
