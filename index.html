@@ -352,7 +352,6 @@
     }
     .cal-evt-badge.niver { background: rgba(210, 153, 34, 0.2); color: var(--accent-yellow); }
 
-    /* Estilo de impressão nativa */
     @media print {
       body * { visibility: hidden; }
       #printContainer, #printContainer * { visibility: visible; }
@@ -616,7 +615,7 @@
 
     let dataCalendarioView = new Date();
 
-    db.ref('app_imuit_v8').on('value', (snapshot) => {
+    db.ref('app_imuit_v9').on('value', (snapshot) => {
       const data = snapshot.val();
       if (data) {
         membros = data.membros || [];
@@ -633,7 +632,7 @@
     });
 
     function salvarDados() {
-      db.ref('app_imuit_v8').set({
+      db.ref('app_imuit_v9').set({
         membros, categoriasPastas, eventos, ministerios,
         ultimaAtualizacao: new Date().toISOString()
       });
@@ -822,6 +821,8 @@
         nome: m.nome,
         status: chamadasEstadoLocal[m.id] || "PENDENTE"
       }));
+
+      if (!pastaAlvo.listas) pastaAlvo.listas = [];
 
       pastaAlvo.listas.push({
         id: Date.now(),
