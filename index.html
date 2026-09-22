@@ -243,9 +243,12 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
+      position: relative;
+      z-index: 10;
     }
 
     button:hover { background: var(--accent-green-hover); }
+    button:active { transform: scale(0.98); }
     button.btn-danger { background: var(--accent-red); }
     button.btn-secondary { background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border-color); }
     button.btn-secondary:hover { background: var(--border-color); }
@@ -347,8 +350,8 @@
 <body>
 
   <!-- SETAS DESKTOP -->
-  <button class="nav-arrow left" onclick="navegarProximaJanela(-1)"><i data-lucide="chevron-left"></i></button>
-  <button class="nav-arrow right" onclick="navegarProximaJanela(1)"><i data-lucide="chevron-right"></i></button>
+  <button type="button" class="nav-arrow left" onclick="navegarProximaJanela(-1)"><i data-lucide="chevron-left"></i></button>
+  <button type="button" class="nav-arrow right" onclick="navegarProximaJanela(1)"><i data-lucide="chevron-right"></i></button>
 
   <div class="container">
     <header>
@@ -363,7 +366,7 @@
         </div>
       </div>
       <div class="header-controls">
-        <button class="btn-secondary" onclick="alternarTema()" id="btnTema">🌙 Modo Escuro</button>
+        <button type="button" class="btn-secondary" onclick="alternarTema()" id="btnTema">🌙 Modo Escuro</button>
         <div id="status" class="status-badge status-offline">
           <i data-lucide="wifi-off" style="width: 14px;"></i> Conectando...
         </div>
@@ -372,13 +375,13 @@
 
     <!-- NAVEGAÇÃO -->
     <div class="tabs-nav">
-      <button class="tab-btn active" onclick="irParaJanela(0)"><i data-lucide="clipboard-check"></i> 1. Chamada e Pastas</button>
-      <button class="tab-btn" onclick="irParaJanela(1)"><i data-lucide="calendar"></i> 2. Calendário</button>
-      <button class="tab-btn" onclick="irParaJanela(2)"><i data-lucide="users"></i> 3. Membros & Ministérios</button>
-      <button class="tab-btn" onclick="irParaJanela(3)"><i data-lucide="help-circle"></i> 4. Tutorial de Uso</button>
+      <button type="button" class="tab-btn active" onclick="irParaJanela(0)"><i data-lucide="clipboard-check"></i> 1. Chamada e Pastas</button>
+      <button type="button" class="tab-btn" onclick="irParaJanela(1)"><i data-lucide="calendar"></i> 2. Calendário</button>
+      <button type="button" class="tab-btn" onclick="irParaJanela(2)"><i data-lucide="users"></i> 3. Membros & Ministérios</button>
+      <button type="button" class="tab-btn" onclick="irParaJanela(3)"><i data-lucide="help-circle"></i> 4. Tutorial de Uso</button>
     </div>
 
-    <div class="carousel-view" id="touchArea">
+    <div class="carousel-view">
       <div class="carousel-track" id="carouselTrack">
         
         <!-- ==================== JANELA 1: CHAMADA E PASTAS ==================== -->
@@ -388,7 +391,7 @@
               <div class="card-title"><span><i data-lucide="folder-plus"></i> Gerenciador de Pastas</span></div>
               <div class="form-row">
                 <input type="text" id="novoNomePastaCat" placeholder="Nome da Pasta (ex: Cultos de Domingo)">
-                <button onclick="criarNovaPasta()"><i data-lucide="plus"></i> Criar Pasta</button>
+                <button type="button" onclick="criarNovaPasta()"><i data-lucide="plus"></i> Criar Pasta</button>
               </div>
               <h3 style="font-size:0.9rem; color:var(--text-muted); margin:15px 0 10px 0;">Pastas Existentes:</h3>
               <div id="listaCategoriasPastas"><p style="color:var(--text-muted);">Nenhuma pasta criada.</p></div>
@@ -403,7 +406,7 @@
               <div class="form-row">
                 <div class="form-group" style="flex: 1;">
                   <label>Nome do Evento / Lista:</label>
-                  <input type="text" id="listaTitulo" placeholder="Ex: Culto 20/09/2026">
+                  <input type="text" id="listaTitulo" placeholder="Ex: Culto de Domingo">
                 </div>
                 <div class="form-group" style="flex: 1;">
                   <label>Data:</label>
@@ -421,16 +424,16 @@
               <div style="background:var(--bg-dark); padding:10px; border-radius:6px; margin:10px 0; border:1px solid var(--border-color);">
                 <label style="display:block; margin-bottom:6px; font-weight:bold;">Ordenar Lista por:</label>
                 <div class="form-row">
-                  <button class="btn-secondary" style="font-size:0.75rem; padding:4px 8px;" onclick="ordenarChamada('PENDENTES')">⚡ Pendentes Primeiro</button>
-                  <button class="btn-secondary" style="font-size:0.75rem; padding:4px 8px;" onclick="ordenarChamada('NOME')">🔤 Ordem A-Z</button>
-                  <button class="btn-secondary" style="font-size:0.75rem; padding:4px 8px;" onclick="ordenarChamada('STATUS')">📊 Por Status</button>
+                  <button type="button" class="btn-secondary" style="font-size:0.75rem; padding:4px 8px;" onclick="ordenarChamada('PENDENTES')">⚡ Pendentes Primeiro</button>
+                  <button type="button" class="btn-secondary" style="font-size:0.75rem; padding:4px 8px;" onclick="ordenarChamada('NOME')">🔤 Ordem A-Z</button>
+                  <button type="button" class="btn-secondary" style="font-size:0.75rem; padding:4px 8px;" onclick="ordenarChamada('STATUS')">📊 Por Status</button>
                 </div>
               </div>
 
               <div id="boxMembrosChamada" style="max-height: 380px; overflow-y: auto; padding-right: 5px;"></div>
               
-              <!-- BOTÃO DE SALVAR CORRIGIDO -->
-              <button onclick="salvarListaNaPasta()" style="width:100%; margin-top:15px; padding: 12px; font-size:1rem;"><i data-lucide="save"></i> Salvar Lista na Pasta</button>
+              <!-- BOTÃO DE SALVAR -->
+              <button type="button" id="btnSalvarListaReal" onclick="salvarListaNaPasta()" style="width:100%; margin-top:15px; padding: 12px; font-size:1rem; cursor:pointer;"><i data-lucide="save"></i> Salvar Lista na Pasta</button>
             </div>
           </div>
 
@@ -471,7 +474,7 @@
                 <label>Quantidade de repetições:</label>
                 <input type="number" id="evtQtd" value="4" min="1" max="52">
               </div>
-              <button onclick="salvarEvento()"><i data-lucide="calendar-check"></i> Agendar Evento(s)</button>
+              <button type="button" onclick="salvarEvento()"><i data-lucide="calendar-check"></i> Agendar Evento(s)</button>
             </div>
 
             <div class="card">
@@ -480,12 +483,11 @@
             </div>
           </div>
 
-          <!-- MÊS COMPACTO -->
           <div class="card">
             <div class="calendar-header-nav">
-              <button class="btn-secondary" onclick="mudarMesCalendario(-1)"><i data-lucide="chevron-left"></i> Mês Anterior</button>
-              <h3 id="calTituloMes" style="font-size: 1.1rem; color: var(--accent-blue);">Setembro 2026</h3>
-              <button class="btn-secondary" onclick="mudarMesCalendario(1)">Mês Seguinte <i data-lucide="chevron-right"></i></button>
+              <button type="button" class="btn-secondary" onclick="mudarMesCalendario(-1)"><i data-lucide="chevron-left"></i> Mês Anterior</button>
+              <h3 id="calTituloMes" style="font-size: 1.1rem; color: var(--accent-blue);">Mês Atual</h3>
+              <button type="button" class="btn-secondary" onclick="mudarMesCalendario(1)">Mês Seguinte <i data-lucide="chevron-right"></i></button>
             </div>
 
             <div class="calendar-grid-month">
@@ -526,18 +528,18 @@
               </div>
               
               <div class="form-group">
-                <label>Selecione o(s) Ministério(s) (ou Deixe em Branco para Visitante):</label>
+                <label>Selecione o(s) Ministério(s):</label>
                 <div id="boxCheckMinisterios" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:5px;"></div>
               </div>
 
-              <button onclick="salvarMembro()"><i data-lucide="check"></i> Cadastrar Membro</button>
+              <button type="button" onclick="salvarMembro()"><i data-lucide="check"></i> Cadastrar Membro</button>
             </div>
 
             <div class="card">
               <div class="card-title"><span><i data-lucide="briefcase"></i> Gerenciar Ministérios</span></div>
               <div class="form-row">
                 <input type="text" id="novoMinNome" placeholder="Ex: Louvor, Mídia, Infantil">
-                <button onclick="criarMinisterio()"><i data-lucide="plus"></i> Criar</button>
+                <button type="button" onclick="criarMinisterio()"><i data-lucide="plus"></i> Criar</button>
               </div>
               <h3 style="font-size:0.9rem; color:var(--text-muted); margin:15px 0 10px 0;">Ministérios Cadastrados:</h3>
               <div id="listaMinisteriosCadastrados"></div>
@@ -558,9 +560,9 @@
           <div class="card">
             <div class="card-title"><span><i data-lucide="help-circle"></i> Guia Rápido de Uso</span></div>
             <div style="line-height: 1.6; color: var(--text-main);">
-              <p><strong>📱 Navegação por Gestos (Celular):</strong> Deslize o dedo para a esquerda ou para a direita para mudar de tela!</p>
-              <p style="margin-top:10px;"><strong>💻 Navegação por Setas (Notebook):</strong> Use as setas flutuantes na lateral da tela para alternar de janela com um clique.</p>
-              <p style="margin-top:10px;"><strong>1. Chamada e Pastas:</strong> Crie uma pasta e salve cada lista de presença dentro dela. Clique no botão <b>📄 Gerar / Baixar PDF</b> para abrir o relatório pronto para salvar ou imprimir!</p>
+              <p><strong>📱 Navegação por Gestos (Celular):</strong> Clique nos botões superiores de cada aba para alternar!</p>
+              <p style="margin-top:10px;"><strong>💻 Navegação por Setas (Notebook):</strong> Use as setas flutuantes nas laterais da tela.</p>
+              <p style="margin-top:10px;"><strong>1. Chamada e Pastas:</strong> Crie uma pasta e salve cada lista de presença. Clique no botão <b>📄 Guardar / Imprimir PDF</b> para baixar o relatório completo!</p>
             </div>
           </div>
         </div>
@@ -594,8 +596,8 @@
 
     let dataCalendarioView = new Date();
 
-    // OUVER NUVEM
-    db.ref('app_imuit_v6').on('value', (snapshot) => {
+    // LEITURA DA NUVEM
+    db.ref('app_imuit_v7').on('value', (snapshot) => {
       const data = snapshot.val();
       if (data) {
         membros = data.membros || [];
@@ -612,13 +614,13 @@
     });
 
     function salvarDados() {
-      db.ref('app_imuit_v6').set({
+      db.ref('app_imuit_v7').set({
         membros, categoriasPastas, eventos, ministerios,
         ultimaAtualizacao: new Date().toISOString()
       });
     }
 
-    // SLIDER
+    // SLIDER DE JANELAS
     function irParaJanela(index) {
       if (index < 0) index = 0;
       if (index > 3) index = 3;
@@ -635,19 +637,6 @@
     function navegarProximaJanela(direcao) {
       irParaJanela(janelaAtual + direcao);
     }
-
-    let touchStartX = 0;
-    let touchEndX = 0;
-    const touchArea = document.getElementById('touchArea');
-
-    touchArea.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, false);
-    touchArea.addEventListener('touchend', e => {
-      touchEndX = e.changedTouches[0].screenX;
-      if (Math.abs(touchStartX - touchEndX) > 50) {
-        if (touchStartX - touchEndX > 0) navegarProximaJanela(1);
-        else navegarProximaJanela(-1);
-      }
-    }, false);
 
     function alternarTema() {
       temaAtual = temaAtual === "dark" ? "light" : "dark";
@@ -696,10 +685,10 @@
       }
     }
 
-    // PASTAS & LISTAS
+    // PASTAS
     function criarNovaPasta() {
       const nome = document.getElementById('novoNomePastaCat').value.trim();
-      if (!nome) return alert("Informe o nome!");
+      if (!nome) return alert("Informe o nome da pasta!");
       categoriasPastas.push({ id: Date.now(), nome, listas: [] });
       document.getElementById('novoNomePastaCat').value = '';
       salvarDados();
@@ -708,7 +697,7 @@
     function editarPasta(pastaId) {
       const pasta = categoriasPastas.find(p => p.id === pastaId);
       if (!pasta) return;
-      const novoNome = prompt("Editar nome:", pasta.nome);
+      const novoNome = prompt("Editar nome da pasta:", pasta.nome);
       if (novoNome && novoNome.trim()) {
         pasta.nome = novoNome.trim();
         salvarDados();
@@ -716,14 +705,14 @@
     }
 
     function excluirPasta(pastaId) {
-      if (confirm("Excluir esta pasta e todas as listas?")) {
+      if (confirm("Excluir esta pasta e todas as listas dentro dela?")) {
         categoriasPastas = categoriasPastas.filter(p => p.id !== pastaId);
         salvarDados();
       }
     }
 
     function excluirLista(pastaId, listaId) {
-      if (confirm("Apagar lista?")) {
+      if (confirm("Deseja apagar esta lista?")) {
         const pasta = categoriasPastas.find(p => p.id === pastaId);
         if (pasta) {
           pasta.listas = pasta.listas.filter(l => l.id !== listaId);
@@ -753,7 +742,7 @@
       }
 
       if (listaFiltrada.length === 0) {
-        container.innerHTML = '<p style="color:var(--text-muted); padding:10px;">Nenhum membro para esta chamada.</p>';
+        container.innerHTML = '<p style="color:var(--text-muted); padding:10px;">Nenhum membro cadastrado.</p>';
         return;
       }
 
@@ -791,31 +780,28 @@
       }).join('');
     }
 
-    // FUNÇÃO DE SALVAR CORRIGIDA E GARANTIDA
+    // SALVAMENTO DE LISTA - GARANTIDO
     function salvarListaNaPasta() {
       const tituloInput = document.getElementById('listaTitulo').value.trim();
       const dataInput = document.getElementById('listaData').value;
 
       if (!tituloInput) {
-        return alert("Por favor, digite o nome do evento/lista no campo 'Nome do Evento / Lista'!");
+        alert("Atenção: Informe o nome do evento!");
+        return;
       }
       if (!dataInput) {
-        return alert("Por favor, selecione uma data válida!");
+        alert("Atenção: Selecione uma data!");
+        return;
       }
 
-      // Se não houver pastas no sistema, cria uma pasta padrão imediatamente
       if (categoriasPastas.length === 0) {
-        const pastaPadrao = { id: Date.now(), nome: "Cultos e Eventos Geral", listas: [] };
-        categoriasPastas.push(pastaPadrao);
+        const pPadrao = { id: Date.now(), nome: "Cultos e Eventos Geral", listas: [] };
+        categoriasPastas.push(pPadrao);
       }
 
       const selEl = document.getElementById('selPastaDestino');
       let pastaAlvoId = selEl ? parseInt(selEl.value) : null;
-
-      let pastaAlvo = categoriasPastas.find(p => p.id === pastaAlvoId);
-      if (!pastaAlvo) {
-        pastaAlvo = categoriasPastas[0];
-      }
+      let pastaAlvo = categoriasPastas.find(p => p.id === pastaAlvoId) || categoriasPastas[0];
 
       const registros = membros.map(m => ({
         membroId: m.id,
@@ -833,10 +819,10 @@
       chamadasEstadoLocal = {};
       document.getElementById('listaTitulo').value = '';
       salvarDados();
-      alert(`Lista "${tituloInput}" salva com sucesso dentro da pasta "${pastaAlvo.nome}"!`);
+      alert(`Sucesso! A lista "${tituloInput}" foi salva na pasta "${pastaAlvo.nome}".`);
     }
 
-    // NOVO GERADOR/EMISSOR DE PDF (RESISTENTE E COMPATÍVEL COM TODOS DISPOSITIVOS)
+    // EMISSÃO DE PDF / IMPRESSÃO DIRETA
     function baixarPDFLista(pastaId, listaId) {
       const pasta = categoriasPastas.find(p => p.id === pastaId);
       if (!pasta) return;
@@ -852,67 +838,71 @@
       const pctPresente = total > 0 ? Math.round((presentes / total) * 100) : 0;
       const pctFalta = total > 0 ? Math.round((faltas / total) * 100) : 0;
 
-      const windowPrint = window.open('', '', 'width=800,height=600');
-      windowPrint.document.write(`
+      const relatorioHtml = `
+        <!DOCTYPE html>
         <html>
-          <head>
-            <title>Relatorio_${pasta.nome}_${lista.titulo}</title>
-            <style>
-              body { font-family: Arial, sans-serif; color: #000; padding: 20px; }
-              .pdf-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
-              .pdf-box { background: #f4f4f4; border: 1px solid #ccc; padding: 12px; border-radius: 6px; margin-bottom: 20px; }
-              .pdf-bar { display: flex; height: 22px; border-radius: 4px; overflow: hidden; margin: 8px 0; border: 1px solid #aaa; }
-              table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
-              th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-              th { background: #eee; }
-            </style>
-          </head>
-          <body>
-            <div class="pdf-header">
-              <h2 style="margin:0;">APP IMUIT - RELATÓRIO DE PRESENÇA</h2>
-              <h4 style="margin:5px 0 0 0; color:#555;">Pasta: ${pasta.nome} | Lista: ${lista.titulo} (${lista.data})</h4>
-            </div>
+        <head>
+          <title>Relatorio_${pasta.nome}_${lista.titulo}</title>
+          <style>
+            body { font-family: Arial, sans-serif; color: #000; padding: 20px; }
+            h2, h4 { margin: 5px 0; }
+            .box { background: #f4f4f4; border: 1px solid #ccc; padding: 12px; margin: 15px 0; border-radius: 6px; }
+            .bar { display: flex; height: 20px; border: 1px solid #999; margin: 10px 0; border-radius: 4px; overflow: hidden; }
+            table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+            th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+            th { background: #eee; }
+          </style>
+        </head>
+        <body>
+          <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px;">
+            <h2>APP IMUIT - RELATÓRIO DE PRESENÇA</h2>
+            <h4>Pasta: ${pasta.nome} | Lista: ${lista.titulo} (${lista.data})</h4>
+          </div>
 
-            <div class="pdf-box">
-              <h4 style="margin:0 0 6px 0;">Frequência Geral (${total} Membros)</h4>
-              <div class="pdf-bar">
-                <div style="width: ${pctPresente}%; background: #238636; color: #fff; text-align: center; font-size: 11px; line-height: 22px;">${pctPresente}% Pres.</div>
-                <div style="width: ${pctFalta}%; background: #da3633; color: #fff; text-align: center; font-size: 11px; line-height: 22px;">${pctFalta}% Aus.</div>
-              </div>
-              <p style="font-size: 11px; margin: 0; display: flex; justify-content: space-between;">
-                <span><b>✓ Presentes:</b> ${presentes}</span>
-                <span><b>👤 Visitantes:</b> ${visitantes}</span>
-                <span><b>🟡 Justificados:</b> ${justificados}</span>
-                <span><b>✗ Faltas:</b> ${faltas}</span>
-              </p>
+          <div class="box">
+            <h4>Frequência Geral (${total} Registrados)</h4>
+            <div class="bar">
+              <div style="width: ${pctPresente}%; background: #238636; color: #fff; text-align: center; font-size: 11px;">${pctPresente}% Pres.</div>
+              <div style="width: ${pctFalta}%; background: #da3633; color: #fff; text-align: center; font-size: 11px;">${pctFalta}% Aus.</div>
             </div>
+            <p style="font-size: 12px; margin: 0; display: flex; justify-content: space-between;">
+              <span><b>✓ Presentes:</b> ${presentes}</span>
+              <span><b>👤 Visitantes:</b> ${visitantes}</span>
+              <span><b>🟡 Justificados:</b> ${justificados}</span>
+              <span><b>✗ Faltas:</b> ${faltas}</span>
+            </p>
+          </div>
 
-            <table>
-              <thead>
+          <table>
+            <thead>
+              <tr>
+                <th>Nome do Membro</th>
+                <th style="width: 120px; text-align: center;">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${lista.registros.map(r => `
                 <tr>
-                  <th>Membro</th>
-                  <th style="width: 120px; text-align: center;">Status</th>
+                  <td>${r.nome}</td>
+                  <td style="text-align: center; font-weight: bold;">${r.status}</td>
                 </tr>
-              </thead>
-              <tbody>
-                ${lista.registros.map(r => `
-                  <tr>
-                    <td>${r.nome}</td>
-                    <td style="text-align: center; font-weight: bold;">${r.status}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </body>
+              `).join('')}
+            </tbody>
+          </table>
+          <script>
+            window.onload = function() { window.print(); }
+          <\/script>
+        </body>
         </html>
-      `);
+      `;
 
-      windowPrint.document.close();
-      windowPrint.focus();
-      setTimeout(() => {
-        windowPrint.print();
-        windowPrint.close();
-      }, 500);
+      const win = window.open('', '_blank');
+      if (win) {
+        win.document.write(relatorioHtml);
+        win.document.close();
+      } else {
+        alert("Por favor, ative as janelas Pop-up do seu navegador para baixar o PDF!");
+      }
     }
 
     // CALENDÁRIO
@@ -971,7 +961,7 @@
       const recorrencia = document.getElementById('evtRecorrencia').value;
       const qtd = parseInt(document.getElementById('evtQtd').value) || 1;
 
-      if (!titulo || !dataStr) return alert("Informe título e data!");
+      if (!titulo || !dataStr) return alert("Informe o título e a data do evento!");
 
       let dataBase = new Date(dataStr + 'T12:00:00');
 
@@ -985,7 +975,7 @@
 
       document.getElementById('evtTitulo').value = '';
       salvarDados();
-      alert("Evento agendado!");
+      alert("Evento agendado com sucesso!");
     }
 
     function cancelarEvento(id) {
@@ -995,7 +985,7 @@
       }
     }
 
-    // CADASTRO
+    // CADASTRO DE MEMBROS
     function salvarMembro() {
       const nome = document.getElementById('memNome').value.trim();
       const apelido = document.getElementById('memApelido').value.trim();
@@ -1014,6 +1004,7 @@
       document.getElementById('memNasc').value = '';
       document.getElementById('memFone').value = '';
       salvarDados();
+      alert("Membro cadastrado com sucesso!");
     }
 
     function removerMembro(id) {
@@ -1030,8 +1021,8 @@
           <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border-color);">
             <span>📁 <strong>${p.nome}</strong> (${p.listas ? p.listas.length : 0} listas)</span>
             <div>
-              <button class="btn-secondary" style="padding:2px 6px; font-size:0.75rem;" onclick="editarPasta(${p.id})">Editar</button>
-              <button class="btn-danger" style="padding:2px 6px; font-size:0.75rem;" onclick="excluirPasta(${p.id})">Excluir</button>
+              <button type="button" class="btn-secondary" style="padding:2px 6px; font-size:0.75rem;" onclick="editarPasta(${p.id})">Editar</button>
+              <button type="button" class="btn-danger" style="padding:2px 6px; font-size:0.75rem;" onclick="excluirPasta(${p.id})">Excluir</button>
             </div>
           </div>
         `).join('');
@@ -1060,8 +1051,8 @@
               <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px dashed var(--border-color);">
                 <span>📄 <strong>${l.titulo}</strong> <small style="color:var(--text-muted)">(${l.data})</small></span>
                 <div>
-                  <button class="btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="baixarPDFLista(${p.id},${l.id})">📄 Guardar / Baixar PDF</button>
-                  <button class="btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="excluirLista(${p.id},${l.id})">Excluir</button>
+                  <button type="button" class="btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="baixarPDFLista(${p.id},${l.id})">📄 Guardar / Imprimir PDF</button>
+                  <button type="button" class="btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="excluirLista(${p.id},${l.id})">Excluir</button>
                 </div>
               </div>
             `).join('') : '<p style="font-size:0.8rem; color:var(--text-muted);">Nenhuma lista nesta pasta.</p>'}
@@ -1074,7 +1065,7 @@
           <td><span class="tag tag-green">${calcularIdade(m.nascimento)}</span></td>
           <td>${m.fone || '-'}</td>
           <td>${m.ministerios && m.ministerios.length > 0 ? m.ministerios.map(x => `<span class="tag tag-blue">${x}</span>`).join('') : '<span class="tag">Visitante</span>'}</td>
-          <td><button class="btn-danger" style="padding:2px 6px;" onclick="removerMembro(${m.id})">Remover</button></td>
+          <td><button type="button" class="btn-danger" style="padding:2px 6px;" onclick="removerMembro(${m.id})">Remover</button></td>
         </tr>
       `).join('');
 
@@ -1082,7 +1073,7 @@
         eventos.sort((a,b) => a.data.localeCompare(b.data)).map(e => `
           <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border-color);">
             <span>📅 <strong>${e.data} às ${e.hora}</strong> - ${e.titulo}</span>
-            <button class="btn-danger" style="padding:2px 6px; font-size:0.75rem;" onclick="cancelarEvento(${e.id})">Cancelar</button>
+            <button type="button" class="btn-danger" style="padding:2px 6px; font-size:0.75rem;" onclick="cancelarEvento(${e.id})">Cancelar</button>
           </div>
         `).join('');
 
